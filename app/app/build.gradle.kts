@@ -64,6 +64,7 @@ dependencies {
 
     implementation(libs.bundles.coroutines)
     implementation(libs.bundles.retrofit)
+    implementation(libs.bundles.navigation3)
 
     implementation(libs.datastore.preferences)
     implementation(libs.material.icons.extended)

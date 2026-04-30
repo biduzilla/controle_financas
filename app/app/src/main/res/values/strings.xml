@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">controle_financas</string>
+    <string name="app_name">Controle Finanças</string>
+    <string name="esqueceu_senha">Esqueceu a senha?</string>
+    <string name="nao_tem_conta">Não tem conta?</string>
+    <string name="cadastre_se">Cadastre-se</string>
+    <string name="entrar">Entrar</string>
+    <string name="fechar">Fechar</string>
+    <string name="senha">Senha</string>
+    <string name="ocultar_senha">Ocultar senha</string>
+    <string name="mostrar_senha">Mostrar senha</string>
+    <string name="email">Email</string>
+    <string name="bem_vindo">Bem-vindo de volta</string>
+    <string name="acesse_sua_conta">Bem-vindo de volta</string>
 </resources>
