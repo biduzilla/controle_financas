@@ -10,5 +10,5 @@ data class LoginRequest(
 data class LoginResponse(
     val accessToken: String,
     val refreshToken: String,
-    val userID: UUID,
+    val expiration: Long,
 )

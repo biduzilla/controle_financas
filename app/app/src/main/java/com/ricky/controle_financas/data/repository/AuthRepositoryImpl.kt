@@ -18,7 +18,8 @@ class AuthRepositoryImpl @Inject constructor(
         }
 
         if (result is Resource.Success && result.data != null) {
-            dataStore.saveToken(result.data)
+            dataStore.saveToken(result.data.accessToken)
+            dataStore.saveToken(result.data.refreshToken)
         }
 
         return result

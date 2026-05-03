@@ -1,6 +1,6 @@
 package com.ricky.controle_financas.data.repository
 
-import android.util.Log
+import com.ricky.controle_financas.domain.model.ErrorResponse
 import com.ricky.controle_financas.utils.Resource
 import retrofit2.HttpException
 import java.io.IOException
@@ -13,8 +13,8 @@ inline fun <T> safeApiCall(call: () -> retrofit2.Response<T>): Resource<T> {
                 ?: Resource.Error("Resposta vazia do servidor")
         } else {
             val errorBody = response.errorBody()?.string()
-            Log.i("infoteste", "safeApiCall: $errorBody")
-            Resource.Error(errorBody ?: "")
+            val errorResponse = ErrorResponse.fromJson(errorBody)
+            Resource.Error(errorResponse?.message ?: "Erro desconhecido (${response.code()})")
         }
     } catch (e: HttpException) {
         Resource.Error(message = "Erro de conexão: ${e.localizedMessage}")

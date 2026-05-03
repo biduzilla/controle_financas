@@ -5,12 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.ricky.controle_financas.domain.use_case.LoginUserCase
 import com.ricky.controle_financas.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,8 +21,8 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableStateFlow(LoginState())
     val state = _state.asStateFlow()
 
-    private val _navigation = MutableSharedFlow<LoginNavigation>(extraBufferCapacity = 1)
-    val navigation: SharedFlow<LoginNavigation> = _navigation.asSharedFlow()
+    private val _navigation = Channel<LoginNavigation>(Channel.BUFFERED)
+    val navigation = _navigation.receiveAsFlow()
 
     fun onEvent(event: LoginEvent) {
         when (event) {
@@ -46,9 +45,13 @@ class LoginViewModel @Inject constructor(
             }
 
             LoginEvent.OnLogin -> login()
-            LoginEvent.NavigateForgetPassword -> _navigation.tryEmit(LoginNavigation.NavigateToForgetPassword)
-            LoginEvent.NavigateRegister -> _navigation.tryEmit(LoginNavigation.NavigateToRegister)
-            LoginEvent.NavigateHome -> _navigation.tryEmit(LoginNavigation.NavigateToHome)
+            is LoginEvent.OnNavigate -> navigateEvent(event.route)
+        }
+    }
+
+    private fun navigateEvent(route: LoginNavigation){
+        viewModelScope.launch {
+            _navigation.send(route)
         }
     }
 
@@ -101,7 +104,7 @@ class LoginViewModel @Inject constructor(
                                     error = null
                                 )
                             }
-                            _navigation.tryEmit(LoginNavigation.NavigateToHome)
+                            _navigation.send(LoginNavigation.NavigateToHome)
                         }
                     }
                 }
@@ -109,8 +112,3 @@ class LoginViewModel @Inject constructor(
     }
 }
 
-sealed class LoginNavigation {
-    object NavigateToHome : LoginNavigation()
-    object NavigateToRegister : LoginNavigation()
-    object NavigateToForgetPassword : LoginNavigation()
-}

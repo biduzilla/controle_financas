@@ -57,32 +57,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.ricky.controle_financas.R
-import com.ricky.controle_financas.navigation.AppNavKey
 import com.ricky.controle_financas.ui.theme.Controle_financasTheme
-import kotlinx.coroutines.flow.SharedFlow
-
-@Composable
-fun LoginRoute(
-    modifier: Modifier = Modifier,
-    state: LoginState,
-    navigation: SharedFlow<LoginNavigation>,
-    onEvent: (LoginEvent) -> Unit,
-    onNavigate: (AppNavKey) -> Unit,
-) {
-    LaunchedEffect(Unit) {
-        navigation.collect { event ->
-            when (event) {
-                LoginNavigation.NavigateToForgetPassword -> onNavigate(AppNavKey.ForgotPassword)
-                LoginNavigation.NavigateToHome -> onNavigate(AppNavKey.Home)
-                LoginNavigation.NavigateToRegister -> onNavigate(AppNavKey.Register)
-            }
-        }
-    }
-
-    LoginScreen(modifier, state, onEvent)
-}
 
 @Composable
 fun LoginScreen(
@@ -183,8 +159,8 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             AuxiliaryLinks(
-                onForgotPassword = { onEvent(LoginEvent.NavigateForgetPassword) },
-                onSignUp = { onEvent(LoginEvent.NavigateRegister) }
+                onForgotPassword = { onEvent(LoginEvent.OnNavigate(LoginNavigation.NavigateToForgetPassword)) },
+                onSignUp = { onEvent(LoginEvent.OnNavigate(LoginNavigation.NavigateToRegister)) }
             )
         }
     }

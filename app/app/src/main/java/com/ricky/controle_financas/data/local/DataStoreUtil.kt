@@ -8,11 +8,14 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
-import com.ricky.controle_financas.domain.model.LoginResponse
+import com.ricky.controle_financas.domain.model.User
 import com.ricky.controle_financas.utils.IS_DARK_MODE
+import com.ricky.controle_financas.utils.KEY_REFRESH_TOKEN
+import com.ricky.controle_financas.utils.KEY_TOKEN
+import com.ricky.controle_financas.utils.KEY_USER
 import com.ricky.controle_financas.utils.SETTINGS
-import com.ricky.controle_financas.utils.USER_TOKEN
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 
@@ -22,7 +25,9 @@ class DataStoreUtil(private val context: Context) {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(SETTINGS)
 
         val THEME_KEY = booleanPreferencesKey(IS_DARK_MODE)
-        val TOKEN = stringPreferencesKey(USER_TOKEN)
+        val TOKEN = stringPreferencesKey(KEY_TOKEN)
+        val REFRESH_TOKEN = stringPreferencesKey(KEY_REFRESH_TOKEN)
+        val USER = stringPreferencesKey(KEY_USER)
     }
 
     suspend fun saveTheme(isDark: Boolean) {
@@ -31,11 +36,34 @@ class DataStoreUtil(private val context: Context) {
         }
     }
 
-    suspend fun saveToken(token: LoginResponse) {
-        val json = Gson().toJson(token)
-        context.dataStore.edit { p -> p[TOKEN] = json }
+    suspend fun saveToken(token: String) {
+        context.dataStore.edit { p -> p[TOKEN] = token }
     }
 
+    suspend fun saveRefreshToken(refreshToken: String) {
+        context.dataStore.edit { p -> p[TOKEN] = refreshToken }
+    }
+
+    suspend fun saveUser(user: User) {
+        val json = Gson().toJson(user)
+        context.dataStore.edit { p -> p[USER] = json }
+    }
+
+    suspend fun getToken(): String? {
+        return context.dataStore.data.first()[TOKEN]
+    }
+
+    suspend fun getRefreshToken(): String? {
+        return context.dataStore.data.first()[REFRESH_TOKEN]
+    }
+
+    fun getTokenAsFlow(): Flow<String?> {
+        return context.dataStore.data.map { it[TOKEN] }
+    }
+
+    fun getRefreshTokenAsFlow(): Flow<String?> {
+        return context.dataStore.data.map { it[REFRESH_TOKEN] }
+    }
 
     fun getTheme(): Flow<Boolean> {
         return context.dataStore.data.map { preferences ->
@@ -43,11 +71,11 @@ class DataStoreUtil(private val context: Context) {
         }
     }
 
-    fun getToken(): Flow<LoginResponse?> {
+    fun getUser(): Flow<User?> {
         return context.dataStore.data.map { preferences ->
-            val json = preferences[TOKEN] ?: ""
+            val json = preferences[USER] ?: ""
             if (json.isNotEmpty()) {
-                Gson().fromJson(json, LoginResponse::class.java)
+                Gson().fromJson(json, User::class.java)
             } else {
                 null
             }
