@@ -39,7 +39,7 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, refreshToken, userID, err := h.service.Login(r.Context(), input.Email, input.Password)
+	accessToken, refreshToken, expiration, err := h.service.Login(r.Context(), input.Email, input.Password)
 
 	if err != nil {
 		h.errHandler.HandlerError(w, r, err)
@@ -53,7 +53,7 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		utils.Envelope{
 			"access_token":  accessToken,
 			"refresh_token": refreshToken,
-			"userID":        userID,
+			"expiration":    expiration,
 		},
 		nil,
 		h.errHandler,

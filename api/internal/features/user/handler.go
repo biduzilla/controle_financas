@@ -1,6 +1,7 @@
 package user
 
 import (
+	"controle_financas/internal/core/contexts"
 	"controle_financas/internal/core/domain/errors"
 	"controle_financas/internal/core/handler"
 	"net/http"
@@ -12,6 +13,7 @@ type userHandler struct {
 }
 
 type UserHandler interface {
+	FindAuthUserData(w http.ResponseWriter, r *http.Request)
 	FindByID(w http.ResponseWriter, r *http.Request)
 	Save(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
@@ -26,6 +28,23 @@ func NewHandler(
 		service:    service,
 		errHandler: errHandler,
 	}
+}
+
+func (h *userHandler) FindAuthUserData(w http.ResponseWriter, r *http.Request) {
+	userAuth := contexts.GetUser(r.Context())
+	model, err := h.service.FindById(r.Context(), userAuth.GetID())
+	if err != nil {
+		h.errHandler.HandlerError(w, r, err)
+		return
+	}
+
+	handler.Respond(
+		w, r,
+		http.StatusOK,
+		model.toDTO(),
+		nil,
+		h.errHandler,
+	)
 }
 
 func (h *userHandler) FindByID(w http.ResponseWriter, r *http.Request) {

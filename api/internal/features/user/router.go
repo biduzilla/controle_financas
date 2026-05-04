@@ -31,6 +31,8 @@ func (r *userRouter) Routes(router chi.Router) {
 
 		router.Group(func(router chi.Router) {
 			router.Use(r.m.RequireActivatedUser)
+
+			router.Get("/data", r.handler.FindAuthUserData)
 			router.Get("/{id}", r.handler.FindByID)
 			router.Put("/", r.handler.Update)
 			router.Delete("/{id}", r.handler.Delete)

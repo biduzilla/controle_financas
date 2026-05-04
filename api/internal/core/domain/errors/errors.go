@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type errorHandler struct {
@@ -87,8 +88,10 @@ func (e *errorHandler) HandlerError(w http.ResponseWriter, r *http.Request, err 
 	case errors.Is(err, ErrInvalidCredentials):
 		e.InvalidCredentialsResponse(w, r)
 
-	case errors.Is(err, ErrTokenExpired) ||
-		errors.Is(err, ErrInvalidTokenType) ||
+	case errors.Is(err, ErrTokenExpired):
+		e.BadRequestResponse(w, r, err)
+
+	case errors.Is(err, ErrInvalidTokenType) ||
 		errors.Is(err, ErrInvalidTokenClaims):
 		e.TokenErrorResponse(w, r, err)
 
@@ -205,8 +208,13 @@ func (e *errorHandler) EditConflictResponse(w http.ResponseWriter, r *http.Reque
 }
 
 func (e *errorHandler) errorHandler(w http.ResponseWriter, r *http.Request, status int, message any) {
-	env := utils.Envelope{"error": message}
-	err := utils.WriteJSON(w, status, env, nil)
+	// env := utils.Envelope{"error": message}
+	err := utils.WriteJSON(w, status, map[string]any{
+		"path":      r.URL.Path,
+		"status":    http.StatusText(status),
+		"message":   message,
+		"timestamp": time.Now(),
+	}, nil)
 	if err != nil {
 		e.logError(r, err)
 		w.WriteHeader(http.StatusInternalServerError)

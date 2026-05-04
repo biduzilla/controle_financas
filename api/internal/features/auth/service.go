@@ -50,7 +50,7 @@ type authService struct {
 }
 
 type AuthService interface {
-	Login(ctx context.Context, email, password string) (accessToken, refreshToken string, userID uuid.UUID, err error)
+	Login(ctx context.Context, email, password string) (accessToken, refreshToken string, expiration time.Duration, err error)
 	ExtractAuthenticatedUser(tokenString string) (security.UserDetails, error)
 	RefreshToken(ctx context.Context, refreshToken string) (string, error)
 	ValidateToken(tokenString string, expectedType TokenType) (*TokenClaims, error)
@@ -152,45 +152,45 @@ func loadRSAPublicKey(path string) (*rsa.PublicKey, error) {
 func (s *authService) Login(
 	ctx context.Context,
 	email, password string,
-) (string, string, uuid.UUID, error) {
+) (string, string, time.Duration, error) {
 	v := validator.New()
 	user.ValidatePasswordPlaintext(v, password)
 	if !v.Valid() {
-		return "", "", uuid.Nil, e.NewValidationError(v.Errors)
+		return "", "", AccessTokenExpiration, e.NewValidationError(v.Errors)
 	}
 
 	user, err := s.userService.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, e.ErrRecordNotFound) {
-			return "", "", uuid.Nil, e.ErrInvalidCredentials
+			return "", "", AccessTokenExpiration, e.ErrInvalidCredentials
 		}
-		return "", "", uuid.Nil, err
+		return "", "", AccessTokenExpiration, err
 	}
 
 	if !user.IsAtivo {
-		return "", "", uuid.Nil, e.ErrInactiveAccount
+		return "", "", AccessTokenExpiration, e.ErrInactiveAccount
 	}
 
 	match, err := user.Senha.Matches(password)
 	if err != nil {
-		return "", "", uuid.Nil, err
+		return "", "", AccessTokenExpiration, err
 	}
 
 	if !match {
-		return "", "", uuid.Nil, e.ErrInvalidCredentials
+		return "", "", AccessTokenExpiration, e.ErrInvalidCredentials
 	}
 
 	accessToken, err := s.createToken(user, TokenTypeAccess, AccessTokenExpiration)
 	if err != nil {
-		return "", "", uuid.Nil, fmt.Errorf("failed to create access token: %w", err)
+		return "", "", AccessTokenExpiration, fmt.Errorf("failed to create access token: %w", err)
 	}
 
 	refreshToken, err := s.createToken(user, TokenTypeRefresh, RefreshTokenExpiration)
 	if err != nil {
-		return "", "", uuid.Nil, fmt.Errorf("failed to create refresh token: %w", err)
+		return "", "", AccessTokenExpiration, fmt.Errorf("failed to create refresh token: %w", err)
 	}
 
-	return accessToken, refreshToken, user.ID, nil
+	return accessToken, refreshToken, AccessTokenExpiration, nil
 }
 
 func (s *authService) ExtractAuthenticatedUser(
