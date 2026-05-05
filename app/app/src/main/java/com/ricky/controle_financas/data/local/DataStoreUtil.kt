@@ -30,6 +30,14 @@ class DataStoreUtil(private val context: Context) {
         val USER = stringPreferencesKey(KEY_USER)
     }
 
+    suspend fun clearTokens() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(TOKEN)
+            preferences.remove(REFRESH_TOKEN)
+            preferences.remove(USER)
+        }
+    }
+
     suspend fun saveTheme(isDark: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[THEME_KEY] = isDark

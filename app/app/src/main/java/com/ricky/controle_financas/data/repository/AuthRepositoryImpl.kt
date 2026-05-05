@@ -31,14 +31,18 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun refreshToken(): Resource<RefreshTokenResponse> {
         val refreshToken = dataStore.getRefreshToken()
-        val request = RefreshTokenRequest(refreshToken ?: "")
-        val result = safeApiCall {
+        if (refreshToken.isNullOrBlank()) {
+            return Resource.Error("Nenhum refresh token disponível. Faça login novamente.")
+        }
+
+        val request = RefreshTokenRequest(refreshToken)
+        val result: Resource<RefreshTokenResponse> = safeApiCall {
             api.refreshToken(request)
         }
 
         if (result is Resource.Success) {
-            result.data?.let {
-                dataStore.saveToken(result.data.accessToken)
+            result.data?.let { response ->
+                dataStore.saveToken(response.accessToken)
             }
         }
 

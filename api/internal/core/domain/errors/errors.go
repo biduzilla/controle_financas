@@ -88,10 +88,8 @@ func (e *errorHandler) HandlerError(w http.ResponseWriter, r *http.Request, err 
 	case errors.Is(err, ErrInvalidCredentials):
 		e.InvalidCredentialsResponse(w, r)
 
-	case errors.Is(err, ErrTokenExpired):
-		e.BadRequestResponse(w, r, err)
-
-	case errors.Is(err, ErrInvalidTokenType) ||
+	case errors.Is(err, ErrTokenExpired) ||
+		errors.Is(err, ErrInvalidTokenType) ||
 		errors.Is(err, ErrInvalidTokenClaims):
 		e.TokenErrorResponse(w, r, err)
 

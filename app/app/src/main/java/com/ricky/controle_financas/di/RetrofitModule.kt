@@ -2,6 +2,7 @@ package com.ricky.controle_financas.di
 
 import com.ricky.controle_financas.data.api.AuthApi
 import com.ricky.controle_financas.data.api.UserApi
+import com.ricky.controle_financas.data.interceptor.AuthInterceptor
 import com.ricky.controle_financas.utils.BASE_URL
 import dagger.Module
 import dagger.Provides
@@ -19,22 +20,22 @@ object RetrofitModule {
 
     @Provides
     @Singleton
+    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
 
