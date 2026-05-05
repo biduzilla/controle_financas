@@ -15,6 +15,8 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.ricky.controle_financas.presentation.auth.login.LoginRoute
 import com.ricky.controle_financas.presentation.auth.login.LoginViewModel
+import com.ricky.controle_financas.presentation.splash.SplashRoute
+import com.ricky.controle_financas.presentation.splash.SplashViewModel
 
 @Composable
 fun AppNavDisplay(
@@ -32,6 +34,18 @@ fun AppNavDisplay(
             rememberViewModelStoreNavEntryDecorator()
         ),
         entryProvider = entryProvider {
+            entry<AppNavKey.Splash> {
+                val viewModel = hiltViewModel<SplashViewModel>()
+                val state by viewModel.state.collectAsState()
+
+                SplashRoute(
+                    state = state,
+                    navigation = viewModel.navigation,
+                    onEvent = viewModel::onEvent,
+                    onNavigate = { key ->
+                        navigationViewModel.navigateAndClear(key)
+                    })
+            }
             entry<AppNavKey.Login> {
                 val viewModel = hiltViewModel<LoginViewModel>()
                 val state by viewModel.state.collectAsState()
