@@ -1,10 +1,6 @@
 package com.ricky.controle_financas.data.interceptor
 
-import com.ricky.controle_financas.data.auth.SessionStateManager
 import com.ricky.controle_financas.data.local.DataStoreUtil
-import com.ricky.controle_financas.domain.use_case.RefreshTokenUserCase
-import com.ricky.controle_financas.utils.Resource
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response

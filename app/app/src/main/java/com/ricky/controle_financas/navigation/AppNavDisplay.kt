@@ -15,6 +15,8 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.ricky.controle_financas.presentation.screens.auth.login.LoginRoute
 import com.ricky.controle_financas.presentation.screens.auth.login.LoginViewModel
+import com.ricky.controle_financas.presentation.screens.auth.register.RegisterRoute
+import com.ricky.controle_financas.presentation.screens.auth.register.RegisterViewModel
 import com.ricky.controle_financas.presentation.screens.splash.SplashRoute
 import com.ricky.controle_financas.presentation.screens.splash.SplashViewModel
 
@@ -59,6 +61,21 @@ fun AppNavDisplay(
                 )
             }
 
+            entry<AppNavKey.Register> {
+                val viewModel = hiltViewModel<RegisterViewModel>()
+                val state by viewModel.state.collectAsState()
+                RegisterRoute(
+                    state = state,
+                    navigation = viewModel.navigation,
+                    onEvent = viewModel::onEvent,
+                    onNavigate = { key ->
+                        navigationViewModel.navigateAndClear(key)
+                    },
+                    onBack = {
+                        navigationViewModel.popBackStack()
+                    }
+                )
+            }
         }
     )
 }
