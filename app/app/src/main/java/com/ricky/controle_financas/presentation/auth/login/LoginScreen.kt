@@ -100,7 +100,7 @@ fun LoginScreen(
     }
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().imePadding(),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
@@ -235,7 +235,6 @@ private fun EmailTextField(
         isError = false,
         modifier = modifier
             .fillMaxWidth()
-            .imePadding()
     )
 }
 
@@ -291,7 +290,6 @@ private fun PasswordTextField(
         singleLine = true,
         modifier = modifier
             .fillMaxWidth()
-            .imePadding()
     )
 }
 

@@ -2,6 +2,7 @@ package com.ricky.controle_financas.di
 
 import com.ricky.controle_financas.data.api.AuthApi
 import com.ricky.controle_financas.data.api.UserApi
+import com.ricky.controle_financas.data.auth.TokenAuthenticator
 import com.ricky.controle_financas.data.interceptor.AuthInterceptor
 import com.ricky.controle_financas.utils.BASE_URL
 import dagger.Module
@@ -20,9 +21,13 @@ object RetrofitModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
+            .authenticator(tokenAuthenticator)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)

@@ -43,7 +43,7 @@ fun SplashScreen(
     val infiniteTransition = rememberInfiniteTransition(label = "splash_pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.05f,
+        targetValue = 1.2f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
