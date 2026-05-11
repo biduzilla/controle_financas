@@ -55,8 +55,11 @@ fun AppNavDisplay(
                     state = state,
                     navigation = viewModel.navigation,
                     onEvent = viewModel::onEvent,
-                    onNavigate = { key ->
-                        navigationViewModel.navigateAndClear(key)
+                    onNavigate = { destination ->
+                        when (destination) {
+                            AppNavKey.Register -> navigationViewModel.navigate(destination)
+                            else -> navigationViewModel.navigateAndClear(destination)
+                        }
                     }
                 )
             }

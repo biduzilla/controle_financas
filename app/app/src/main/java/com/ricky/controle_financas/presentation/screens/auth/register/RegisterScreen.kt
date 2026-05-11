@@ -149,7 +149,7 @@ fun RegisterScreen(
 
             TextFieldCustom(
                 value = state.phone,
-                onChange = { onEvent(RegisterEvent.OnChangeEmail(it)) },
+                onChange = { onEvent(RegisterEvent.OnChangePhone(it)) },
                 label = R.string.phone,
                 placeholder = "99999999999",
                 leadingIcon = Icons.Default.Phone,
@@ -165,15 +165,19 @@ fun RegisterScreen(
                 value = state.password,
                 label = R.string.senha,
                 onNext = { confirmPasswordFocus.requestFocus() },
+                onChange = { onEvent(RegisterEvent.OnChangePassword(it)) },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             PasswordFieldCustom(
                 modifier = Modifier.focusRequester(confirmPasswordFocus),
-                value = state.password,
+                value = state.confirmPassword,
                 label = R.string.senha,
-                onDone = { onImeAction() },
+                onDone = {
+                    onImeAction()
+                },
+                onChange = { onEvent(RegisterEvent.OnChangeConfirmPassword(it)) },
             )
 
             state.error?.let { error ->
@@ -264,7 +268,7 @@ private fun RegisterHeader(modifier: Modifier = Modifier) {
 @Composable
 private fun RegisterScreenPreview_Idle() {
     Controle_financasTheme {
-        RegisterScreen(state = RegisterState(), onEvent = {})
+        RegisterScreen(state = RegisterState(), onEvent = {}, onBack = {})
     }
 }
 
@@ -280,7 +284,8 @@ private fun RegisterScreenPreview_Filled() {
                 password = "123456",
                 confirmPassword = "123456"
             ),
-            onEvent = {}
+            onEvent = {},
+            onBack = {}
         )
     }
 }
@@ -298,7 +303,8 @@ private fun RegisterScreenPreview_Loading() {
                 confirmPassword = "123456",
                 isLoading = true
             ),
-            onEvent = {}
+            onEvent = {},
+            onBack = {}
         )
     }
 }
@@ -316,7 +322,8 @@ private fun RegisterScreenPreview_Error() {
                 confirmPassword = "1234567",
                 error = "Senhas não conferem"
             ),
-            onEvent = {}
+            onEvent = {},
+            onBack = {}
         )
     }
 }

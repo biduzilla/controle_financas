@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -197,7 +198,8 @@ func (e *errorHandler) BadRequestResponse(w http.ResponseWriter, r *http.Request
 }
 
 func (e *errorHandler) FailedValidationResponse(w http.ResponseWriter, r *http.Request, fieldErrors map[string]string) {
-	e.errorHandler(w, r, http.StatusUnprocessableEntity, fieldErrors)
+	message := formatFieldErrors(fieldErrors)
+	e.errorHandler(w, r, http.StatusUnprocessableEntity, message)
 }
 
 func (e *errorHandler) EditConflictResponse(w http.ResponseWriter, r *http.Request) {
@@ -224,4 +226,12 @@ func (e *errorHandler) logError(r *http.Request, err error) {
 		"request_method": r.Method,
 		"request_url":    r.URL.String(),
 	})
+}
+
+func formatFieldErrors(errors map[string]string) string {
+	var parts []string
+	for field, msg := range errors {
+		parts = append(parts, fmt.Sprintf("%s: %s", field, msg))
+	}
+	return strings.Join(parts, "; ")
 }

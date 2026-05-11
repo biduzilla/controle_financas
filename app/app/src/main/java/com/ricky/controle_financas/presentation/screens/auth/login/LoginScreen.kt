@@ -152,8 +152,14 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             AuxiliaryLinks(
-                onForgotPassword = { onEvent(LoginEvent.OnNavigate(LoginNavigation.NavigateToForgetPassword)) },
-                onSignUp = { onEvent(LoginEvent.OnNavigate(LoginNavigation.NavigateToRegister)) }
+                onForgotPassword = {
+                    keyboardController?.hide()
+                    onEvent(LoginEvent.OnNavigate(LoginNavigation.NavigateToForgetPassword))
+                },
+                onSignUp = {
+                    keyboardController?.hide()
+                    onEvent(LoginEvent.OnNavigate(LoginNavigation.NavigateToRegister))
+                }
             )
         }
     }

@@ -8,9 +8,9 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface UserApi {
-    @POST("v1/user")
+    @POST("user")
     suspend fun createUser(@Body request: User): Response<User>
 
-    @GET("v1/user/{id}")
+    @GET("user/{id}")
     suspend fun getUser(@Path("id") id: String): Response<User>
 }
