@@ -1,4 +1,4 @@
-package com.ricky.controle_financas.presentation.splash
+package com.ricky.controle_financas.presentation.screens.splash
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

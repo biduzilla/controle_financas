@@ -1,4 +1,4 @@
-package com.ricky.controle_financas.presentation.splash
+package com.ricky.controle_financas.presentation.screens.splash
 
 data class SplashState(
     val isLoading: Boolean = true,

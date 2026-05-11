@@ -9,6 +9,14 @@
     <string name="ocultar_senha">Ocultar senha</string>
     <string name="mostrar_senha">Mostrar senha</string>
     <string name="email">Email</string>
+    <string name="phone">Telefone</string>
     <string name="bem_vindo">Bem-vindo de volta</string>
     <string name="acesse_sua_conta">Bem-vindo de volta</string>
+    <string name="nome">Nome</string>
+    <string name="confirmar_senha">Confirmar Senha</string>
+    <string name="cadastrar">Cadastrar</string>
+    <string name="ja_tem_conta">Já tem conta?</string>
+    <string name="fazer_login">Fazer login</string>
+    <string name="crie_sua_conta">Criar sua conta</string>
+    <string name="preencha_dados_cadastro">Preencha dados para o cadastro</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.ricky.controle_financas.presentation.auth.login
+package com.ricky.controle_financas.presentation.screens.auth.login
 
 sealed interface LoginEvent {
     data class OnChangeEmail(var email: String) : LoginEvent

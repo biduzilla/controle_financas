@@ -1,4 +1,4 @@
-package com.ricky.controle_financas.presentation.auth.login
+package com.ricky.controle_financas.presentation.screens.auth.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,27 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,14 +36,15 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ricky.controle_financas.R
+import com.ricky.controle_financas.presentation.components.CustomButton
+import com.ricky.controle_financas.presentation.components.ErrorBanner
+import com.ricky.controle_financas.presentation.components.PasswordFieldCustom
+import com.ricky.controle_financas.presentation.components.TextFieldCustom
 import com.ricky.controle_financas.ui.theme.Controle_financasTheme
 
 @Composable
@@ -100,7 +87,9 @@ fun LoginScreen(
     }
 
     Scaffold(
-        modifier = modifier.fillMaxSize().imePadding(),
+        modifier = modifier
+            .fillMaxSize()
+            .imePadding(),
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
@@ -116,23 +105,26 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            EmailTextField(
+            TextFieldCustom(
                 value = state.email,
-                onValueChange = { onEvent(LoginEvent.OnChangeEmail(it)) },
-                onFocusNext = { passwordFocus.requestFocus() },
-                onImeAction = onImeAction,
-                modifier = Modifier.focusRequester(emailFocus)
+                onChange = { onEvent(LoginEvent.OnChangeEmail(it)) },
+                modifier = Modifier.focusRequester(emailFocus),
+                placeholder = "seu@email.com.br",
+                label = R.string.email,
+                leadingIcon = Icons.Default.Email,
+                keyboardType = KeyboardType.Email,
+                onNext = { passwordFocus.requestFocus() },
+                onDone = { onImeAction() }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            PasswordTextField(
+            PasswordFieldCustom(
                 value = state.password,
-                onValueChange = { onEvent(LoginEvent.OnChangeSenha(it)) },
-                passwordVisible = passwordVisible,
-                onPasswordVisibilityChange = { passwordVisible = it },
-                onImeAction = onImeAction,
-                modifier = Modifier.focusRequester(passwordFocus)
+                onChange = { onEvent(LoginEvent.OnChangeSenha(it)) },
+                modifier = Modifier.focusRequester(passwordFocus),
+                onDone = { onImeAction() },
+                label = R.string.senha
             )
 
             state.error?.let { error ->
@@ -145,7 +137,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            LoginButton(
+            CustomButton(
                 isLoading = state.isLoading,
                 enabled = isButtonEnabled,
                 onClick = {
@@ -153,7 +145,8 @@ fun LoginScreen(
                     keyboardController?.hide()
                     onEvent(LoginEvent.OnLogin)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                label = R.string.entrar
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -204,173 +197,6 @@ private fun LoginHeader(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun EmailTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onFocusNext: () -> Unit,
-    onImeAction: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(stringResource(R.string.email)) },
-        placeholder = { Text("seu@email.com.br") },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Email,
-                contentDescription = null,
-            )
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions(
-            onNext = { onFocusNext() },
-            onDone = { onImeAction() }
-        ),
-        singleLine = true,
-        isError = false,
-        modifier = modifier
-            .fillMaxWidth()
-    )
-}
-
-@Composable
-private fun PasswordTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    passwordVisible: Boolean,
-    onPasswordVisibilityChange: (Boolean) -> Unit,
-    onImeAction: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(stringResource(R.string.senha)) },
-        placeholder = { Text("••••••••") },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = null
-            )
-        },
-        trailingIcon = {
-            IconButton(onClick = {
-                onPasswordVisibilityChange(!passwordVisible)
-            }) {
-                Icon(
-                    imageVector = if (passwordVisible) {
-                        Icons.Default.Visibility
-                    } else {
-                        Icons.Default.VisibilityOff
-                    },
-                    contentDescription = if (passwordVisible) {
-                        stringResource(R.string.ocultar_senha)
-                    } else {
-                        stringResource(R.string.mostrar_senha)
-                    }
-                )
-            }
-        }, visualTransformation = if (passwordVisible) {
-            VisualTransformation.None
-        } else {
-            PasswordVisualTransformation()
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = { onImeAction() }
-        ),
-        singleLine = true,
-        modifier = modifier
-            .fillMaxWidth()
-    )
-}
-
-@Composable
-private fun ErrorBanner(
-    message: String,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        colors = CardDefaults.cardColors(
-            contentColor = MaterialTheme.colorScheme.errorContainer
-        ),
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ErrorOutline,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.fechar),
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LoginButton(
-    isLoading: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled && !isLoading,
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
-                strokeWidth = 2.dp
-            )
-        } else {
-            Text(
-                text = stringResource(R.string.entrar),
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-    }
-}
 
 @Composable
 private fun AuxiliaryLinks(

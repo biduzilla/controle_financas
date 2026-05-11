@@ -13,10 +13,10 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.ricky.controle_financas.presentation.auth.login.LoginRoute
-import com.ricky.controle_financas.presentation.auth.login.LoginViewModel
-import com.ricky.controle_financas.presentation.splash.SplashRoute
-import com.ricky.controle_financas.presentation.splash.SplashViewModel
+import com.ricky.controle_financas.presentation.screens.auth.login.LoginRoute
+import com.ricky.controle_financas.presentation.screens.auth.login.LoginViewModel
+import com.ricky.controle_financas.presentation.screens.splash.SplashRoute
+import com.ricky.controle_financas.presentation.screens.splash.SplashViewModel
 
 @Composable
 fun AppNavDisplay(

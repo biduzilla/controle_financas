@@ -1,4 +1,4 @@
-package com.ricky.controle_financas.presentation.auth.login
+package com.ricky.controle_financas.presentation.screens.auth.login
 
 data class LoginState(
     val email: String = "",
