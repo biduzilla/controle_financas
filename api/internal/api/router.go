@@ -4,6 +4,7 @@ import (
 	"controle_financas/internal/core/domain/errors"
 	"controle_financas/internal/core/middleware"
 	"controle_financas/internal/features/auth"
+	"controle_financas/internal/features/category"
 	"controle_financas/internal/features/user"
 	"expvar"
 	"net/http"
@@ -16,6 +17,7 @@ type router struct {
 	m          middleware.Middleware
 	user       user.UserRouter
 	auth       auth.AuthRouter
+	category   category.CategoryRouter
 }
 
 type Router interface {
@@ -27,7 +29,6 @@ func NewRouter(
 	errHandler errors.ErrorHandler,
 	m middleware.Middleware,
 ) Router {
-
 	return &router{
 		m:          m,
 		errHandler: errHandler,
@@ -58,6 +59,7 @@ func (router *router) RegisterRoutes() *chi.Mux {
 		r.Mount("/debug/vars", expvar.Handler())
 		router.user.Routes(r)
 		router.auth.Routes(r)
+		router.category.Routes(r)
 	})
 
 	return r

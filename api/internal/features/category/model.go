@@ -38,12 +38,11 @@ func TypeCategoriaFromString(s string) TypeCategoria {
 
 type Category struct {
 	models.BaseModel
-	ID        int64
-	CreatedAt time.Time
-	Name      string
-	Type      TypeCategoria
-	Color     string
-	User      *user.Usuario
+	ID    int64
+	Name  string
+	Type  TypeCategoria
+	Color string
+	User  *user.Usuario
 }
 
 type CategoryDTO struct {
