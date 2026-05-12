@@ -2,7 +2,7 @@ package category
 
 import (
 	"context"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/filters"
 	"controle_financas/internal/core/transaction"
 	"controle_financas/internal/core/validator"
@@ -79,7 +79,7 @@ func (s *categoryService) Insert(
 	saveFn := func(tx *sql.Tx) error {
 		v := validator.New()
 		if model.ValidateCategory(v); !v.Valid() {
-			return e.NewValidationError(v.Errors)
+			return apiError.NewValidationError(v.Errors)
 		}
 
 		return s.repo.Insert(ctx, tx, model)
@@ -99,7 +99,7 @@ func (s *categoryService) Update(
 	updateFn := func(tx *sql.Tx) error {
 		v := validator.New()
 		if model.ValidateCategory(v); !v.Valid() {
-			return e.NewValidationError(v.Errors)
+			return apiError.NewValidationError(v.Errors)
 		}
 
 		return s.repo.Update(ctx, tx, model)

@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/transaction"
 	"controle_financas/internal/core/validator"
 	"database/sql"
@@ -45,7 +45,7 @@ func (s *userService) Save(ctx context.Context, model *Usuario, tx *sql.Tx) erro
 	fn := func(tx *sql.Tx) error {
 		v := validator.New()
 		if model.Validate(v); !v.Valid() {
-			return e.NewValidationError(v.Errors)
+			return apiError.NewValidationError(v.Errors)
 		}
 
 		return s.repo.Save(ctx, tx, model)
@@ -62,7 +62,7 @@ func (s *userService) Update(ctx context.Context, model *Usuario, tx *sql.Tx) er
 	fn := func(tx *sql.Tx) error {
 		v := validator.New()
 		if model.Validate(v); !v.Valid() {
-			return e.NewValidationError(v.Errors)
+			return apiError.NewValidationError(v.Errors)
 		}
 
 		return s.repo.Update(ctx, tx, model)

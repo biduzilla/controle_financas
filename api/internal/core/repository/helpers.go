@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/filters"
 	"database/sql"
 	"errors"
@@ -387,7 +387,7 @@ func GetByQuery[T any](
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, e.ErrRecordNotFound
+			return nil, apiError.ErrRecordNotFound
 		default:
 			return nil, err
 		}
@@ -406,7 +406,7 @@ func ScanStruct(row *sql.Row, dest any) error {
 	err = row.Scan(fields...)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return e.ErrRecordNotFound
+			return apiError.ErrRecordNotFound
 		}
 		return err
 	}
@@ -466,7 +466,7 @@ func collectColumns(t reflect.Type, alias string, cols *[]string) {
 func collectFields(dest any) ([]any, error) {
 	v := reflect.ValueOf(dest)
 	if v.Kind() != reflect.Pointer {
-		return nil, e.ErrScanModel
+		return nil, apiError.ErrScanModel
 	}
 
 	v = v.Elem()
@@ -491,7 +491,7 @@ func collectFields(dest any) ([]any, error) {
 					fields = append(fields, pq.Array(fieldVal.Addr().Interface()))
 					continue
 				default:
-					return nil, e.ErrUnsupportedTypeScanModel
+					return nil, apiError.ErrUnsupportedTypeScanModel
 				}
 			} else {
 				fields = append(fields, fieldVal.Addr().Interface())

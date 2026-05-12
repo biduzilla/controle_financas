@@ -3,7 +3,7 @@ package category
 import (
 	"context"
 	"controle_financas/internal/core/contexts"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/filters"
 	"controle_financas/internal/core/jsonlog"
 	"controle_financas/internal/core/repository"
@@ -67,7 +67,7 @@ func (r *categoryRepository) parseConstraintError(err error) error {
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Constraint {
 		case "categories_name_user_id_unique":
-			return e.ValidationAlreadyExists("nome")
+			return apiError.ValidationAlreadyExists("nome")
 		}
 	}
 	return err

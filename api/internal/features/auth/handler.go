@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
 	"controle_financas/utils"
 	"net/http"
@@ -9,7 +9,7 @@ import (
 
 type authHandler struct {
 	service    AuthService
-	errHandler errors.ErrorHandler
+	errHandler apiError.ErrorHandler
 }
 
 type AuthHandler interface {
@@ -19,7 +19,7 @@ type AuthHandler interface {
 
 func NewHandler(
 	service AuthService,
-	errHandler errors.ErrorHandler,
+	errHandler apiError.ErrorHandler,
 ) *authHandler {
 	return &authHandler{
 		service:    service,

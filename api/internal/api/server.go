@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/middleware"
 	"controle_financas/internal/core/transaction"
 	"errors"
@@ -27,7 +27,7 @@ func (app *application) Server() error {
 		return err
 	}
 
-	errHandler := e.NewErrorHandler(app.Logger)
+	errHandler := apiError.NewErrorHandler(app.Logger)
 	handlers := NewHandlers(services, errHandler)
 	middleware := middleware.New(
 		errHandler,

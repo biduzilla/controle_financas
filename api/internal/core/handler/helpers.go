@@ -1,7 +1,7 @@
 package handler
 
 import (
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/filters"
 	"controle_financas/internal/core/validator"
 	"controle_financas/utils"
@@ -22,7 +22,7 @@ import (
 func ParseIntID(
 	w http.ResponseWriter,
 	r *http.Request,
-	errRsp e.ErrorHandler,
+	errRsp apiError.ErrorHandler,
 ) (int64, bool) {
 	id, err := readIntPathVariable(r, "id")
 	if err != nil {
@@ -42,7 +42,7 @@ func GetFilters(r *http.Request, sortSafelist []string) (filters.Filters, error)
 	f.SortSafelist = sortSafelist
 
 	if filters.ValidateFilters(v, f); !v.Valid() {
-		return filters.Filters{}, e.NewValidationError(v.Errors)
+		return filters.Filters{}, apiError.NewValidationError(v.Errors)
 	}
 
 	return f, nil
@@ -52,7 +52,7 @@ func GetFilters(r *http.Request, sortSafelist []string) (filters.Filters, error)
 func ParseStringField(
 	w http.ResponseWriter,
 	r *http.Request,
-	errRsp e.ErrorHandler,
+	errRsp apiError.ErrorHandler,
 	field string,
 ) (string, bool) {
 	value, err := readStringPathVariable(r, field)
@@ -66,7 +66,7 @@ func ParseStringField(
 func ParseUUID(
 	w http.ResponseWriter,
 	r *http.Request,
-	errRsp e.ErrorHandler,
+	errRsp apiError.ErrorHandler,
 ) (uuid.UUID, bool) {
 
 	id, err := readStringPathVariable(r, "id")
@@ -177,7 +177,7 @@ func Respond(
 	status int,
 	data any,
 	headers http.Header,
-	errRsp e.ErrorHandler,
+	errRsp apiError.ErrorHandler,
 ) {
 	err := utils.WriteJSON(w, status, data, headers)
 	if err != nil {

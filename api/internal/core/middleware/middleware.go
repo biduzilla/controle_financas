@@ -4,7 +4,7 @@ import (
 	"context"
 	"controle_financas/internal/core/config"
 	"controle_financas/internal/core/contexts"
-	"controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/jsonlog"
 	"controle_financas/internal/core/security"
 	"expvar"
@@ -31,7 +31,7 @@ type JWTService interface {
 }
 
 type middleware struct {
-	errHandler errors.ErrorHandler
+	errHandler apiError.ErrorHandler
 	jwtService JWTService
 	config     config.Config
 	logger     jsonlog.Logger
@@ -52,7 +52,7 @@ type Middleware interface {
 }
 
 func New(
-	errHandler errors.ErrorHandler,
+	errHandler apiError.ErrorHandler,
 	config config.Config,
 	jwtService JWTService,
 	logger jsonlog.Logger,

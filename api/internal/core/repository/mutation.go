@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"controle_financas/internal/core/contexts"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/utils"
 	"database/sql"
 	"errors"
@@ -171,7 +171,7 @@ func (r *baseRepository[T]) Insert(
 	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(pkPtr, &createdAt, &version)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return e.ErrRecordNotFound
+			return apiError.ErrRecordNotFound
 		}
 		return err
 	}
@@ -179,43 +179,6 @@ func (r *baseRepository[T]) Insert(
 	r.setFieldValue(model, pk.fieldName, reflect.ValueOf(pkPtr).Elem().Interface())
 	r.setFieldValue(model, "CreatedAt", createdAt)
 	r.setFieldValue(model, "Version", version)
-
-	// if pk.isAuto {
-	// 	var ret struct {
-	// 		id        uuid.UUID `db:"id"`
-	// 		CreatedAt time.Time `db:"created_at"`
-	// 		Version   int       `db:"version"`
-	// 	}
-
-	// 	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(&ret.id, &ret.CreatedAt, &ret.Version)
-	// 	if err != nil {
-	// 		if errors.Is(err, sql.ErrNoRows) {
-	// 			return e.ErrRecordNotFound
-	// 		}
-	// 		return err
-	// 	}
-
-	// 	r.setFieldValue(model, pk.fieldName, reflect.ValueOf(ret.id).Elem().Interface())
-	// 	r.setFieldValue(model, "CreatedAt", ret.CreatedAt)
-	// 	r.setFieldValue(model, "Version", ret.Version)
-	// } else {
-	// 	var createdAt time.Time
-	// 	var version int
-
-	// 	pkPtr := reflect.New(reflect.TypeOf(r.getFieldValue(model, pk.fieldName))).Interface()
-
-	// 	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(pkPtr, &createdAt, &version)
-	// 	if err != nil {
-	// 		if errors.Is(err, sql.ErrNoRows) {
-	// 			return e.ErrRecordNotFound
-	// 		}
-	// 		return err
-	// 	}
-
-	// 	r.setFieldValue(model, pk.fieldName, reflect.ValueOf(pkPtr).Elem().Interface())
-	// 	r.setFieldValue(model, "CreatedAt", createdAt)
-	// 	r.setFieldValue(model, "Version", version)
-	// }
 
 	return nil
 }
@@ -270,7 +233,7 @@ func (r *baseRepository[T]) Update(
 	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(&newVersion)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return e.ErrEditConflict
+			return apiError.ErrEditConflict
 		}
 		return err
 	}

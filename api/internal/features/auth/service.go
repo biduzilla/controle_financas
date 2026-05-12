@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"controle_financas/internal/core/config"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/security"
 	"controle_financas/internal/core/validator"
 	"controle_financas/internal/features/user"
@@ -157,19 +157,19 @@ func (s *authService) Login(
 	v := validator.New()
 	user.ValidatePasswordPlaintext(v, password)
 	if !v.Valid() {
-		return "", "", AccessTokenExpiration, e.NewValidationError(v.Errors)
+		return "", "", AccessTokenExpiration, apiError.NewValidationError(v.Errors)
 	}
 
 	user, err := s.userService.FindByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, e.ErrRecordNotFound) {
-			return "", "", AccessTokenExpiration, e.ErrInvalidCredentials
+		if errors.Is(err, apiError.ErrRecordNotFound) {
+			return "", "", AccessTokenExpiration, apiError.ErrInvalidCredentials
 		}
 		return "", "", AccessTokenExpiration, err
 	}
 
 	if !user.IsAtivo {
-		return "", "", AccessTokenExpiration, e.ErrInactiveAccount
+		return "", "", AccessTokenExpiration, apiError.ErrInactiveAccount
 	}
 
 	match, err := user.Senha.Matches(password)
@@ -178,7 +178,7 @@ func (s *authService) Login(
 	}
 
 	if !match {
-		return "", "", AccessTokenExpiration, e.ErrInvalidCredentials
+		return "", "", AccessTokenExpiration, apiError.ErrInvalidCredentials
 	}
 
 	accessToken, err := s.createToken(user, TokenTypeAccess, AccessTokenExpiration)
@@ -220,14 +220,14 @@ func (s *authService) RefreshToken(
 
 	user, err := s.userService.FindByEmail(ctx, claims.Username)
 	if err != nil {
-		if errors.Is(err, e.ErrRecordNotFound) {
-			return "", e.ErrInvalidCredentials
+		if errors.Is(err, apiError.ErrRecordNotFound) {
+			return "", apiError.ErrInvalidCredentials
 		}
 		return "", err
 	}
 
 	if !user.IsAtivo {
-		return "", e.ErrInactiveAccount
+		return "", apiError.ErrInactiveAccount
 	}
 
 	return s.createToken(user, TokenTypeAccess, AccessTokenExpiration)
@@ -253,36 +253,36 @@ func (s *authService) ValidateToken(
 
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
-			return nil, e.ErrTokenExpired
+			return nil, apiError.ErrTokenExpired
 		}
 		if errors.Is(err, jwt.ErrTokenInvalidIssuer) || errors.Is(err, jwt.ErrTokenInvalidAudience) {
-			return nil, e.ErrInvalidTokenClaims
+			return nil, apiError.ErrInvalidTokenClaims
 		}
 
 		if strings.Contains(err.Error(), "token has invalid claims") {
-			return nil, e.ErrInvalidTokenClaims
+			return nil, apiError.ErrInvalidTokenClaims
 		}
-		return nil, e.NewApiError(
+		return nil, apiError.NewApiError(
 			fmt.Sprintf("failed to parse token: %s", err.Error()),
 			http.StatusBadRequest,
 		)
 	}
 
 	if !token.Valid {
-		return nil, e.ErrInvalidCredentials
+		return nil, apiError.ErrInvalidCredentials
 	}
 
 	claims, ok := token.Claims.(*TokenClaims)
 	if !ok {
-		return nil, e.ErrInvalidTokenClaims
+		return nil, apiError.ErrInvalidTokenClaims
 	}
 
 	if claims.Type != expectedType {
-		return nil, e.ErrInvalidTokenType
+		return nil, apiError.ErrInvalidTokenType
 	}
 
 	if !claims.IsAtivo {
-		return nil, e.ErrInactiveAccount
+		return nil, apiError.ErrInactiveAccount
 	}
 
 	return claims, nil

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"controle_financas/internal/core/contexts"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/filters"
 	"controle_financas/internal/core/jsonlog"
 	"controle_financas/utils"
@@ -272,7 +272,7 @@ func (r *baseRepository[T]) DeleteByQuery(
 	}
 
 	if rowsAffected == 0 {
-		return e.ErrRecordNotFound
+		return apiError.ErrRecordNotFound
 	}
 
 	return nil

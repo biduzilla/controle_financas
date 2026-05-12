@@ -1,7 +1,7 @@
 package category
 
 import (
-	"controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
 	"controle_financas/utils"
 	"net/http"
@@ -9,7 +9,7 @@ import (
 
 type categoyHandler struct {
 	service    CategoryService
-	errHandler errors.ErrorHandler
+	errHandler apiError.ErrorHandler
 }
 
 type CategoyHandler interface {
@@ -22,7 +22,7 @@ type CategoyHandler interface {
 
 func NewHandler(
 	service CategoryService,
-	errHandler errors.ErrorHandler,
+	errHandler apiError.ErrorHandler,
 ) CategoyHandler {
 	return &categoyHandler{
 		service:    service,

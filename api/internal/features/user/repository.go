@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	e "controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/jsonlog"
 	"controle_financas/internal/core/repository"
 	"database/sql"
@@ -40,9 +40,9 @@ func parseUserConstraintError(err error) error {
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Constraint {
 		case "user_email_key":
-			return e.ValidationAlreadyExists("email")
+			return apiError.ValidationAlreadyExists("email")
 		case "user_telefone_key":
-			return e.ValidationAlreadyExists("telefone")
+			return apiError.ValidationAlreadyExists("telefone")
 		}
 	}
 	return err

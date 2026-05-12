@@ -1,7 +1,7 @@
 package api
 
 import (
-	"controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/features/auth"
 	"controle_financas/internal/features/category"
 	"controle_financas/internal/features/user"
@@ -16,7 +16,7 @@ type handlers struct {
 
 func NewHandlers(
 	services *services,
-	errHandler errors.ErrorHandler,
+	errHandler apiError.ErrorHandler,
 ) *handlers {
 	return &handlers{
 		services:       services,

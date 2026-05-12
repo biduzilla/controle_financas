@@ -1,7 +1,7 @@
 package api
 
 import (
-	"controle_financas/internal/core/domain/errors"
+	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/middleware"
 	"controle_financas/internal/features/auth"
 	"controle_financas/internal/features/category"
@@ -13,7 +13,7 @@ import (
 )
 
 type router struct {
-	errHandler errors.ErrorHandler
+	errHandler apiError.ErrorHandler
 	m          middleware.Middleware
 	user       user.UserRouter
 	auth       auth.AuthRouter
@@ -26,7 +26,7 @@ type Router interface {
 
 func NewRouter(
 	handlers *handlers,
-	errHandler errors.ErrorHandler,
+	errHandler apiError.ErrorHandler,
 	m middleware.Middleware,
 ) Router {
 	return &router{
