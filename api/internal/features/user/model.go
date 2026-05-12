@@ -48,7 +48,7 @@ type password struct {
 	Hash      []byte `db:"password_hash" repo:"insert,update"`
 }
 
-func (m Usuario) toDTO() *UsuarioDTO {
+func (m Usuario) ToDTO() *UsuarioDTO {
 	return &UsuarioDTO{
 		ID:       &m.ID,
 		Nome:     &m.Nome,
@@ -58,7 +58,7 @@ func (m Usuario) toDTO() *UsuarioDTO {
 	}
 }
 
-func (d UsuarioDTO) toModel() (*Usuario, error) {
+func (d UsuarioDTO) ToModel() (*Usuario, error) {
 	var model Usuario
 
 	if d.ID != nil {

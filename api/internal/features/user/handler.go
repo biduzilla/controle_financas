@@ -41,7 +41,7 @@ func (h *userHandler) FindAuthUserData(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(
 		w, r,
 		http.StatusOK,
-		model.toDTO(),
+		model.ToDTO(),
 		nil,
 		h.errHandler,
 	)
@@ -62,7 +62,7 @@ func (h *userHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(
 		w, r,
 		http.StatusOK,
-		model.toDTO(),
+		model.ToDTO(),
 		nil,
 		h.errHandler,
 	)
@@ -75,7 +75,7 @@ func (h *userHandler) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model, err := dto.toModel()
+	model, err := dto.ToModel()
 	if err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
@@ -86,7 +86,7 @@ func (h *userHandler) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handler.Respond(w, r, http.StatusCreated, model.toDTO(), nil, h.errHandler)
+	handler.Respond(w, r, http.StatusCreated, model.ToDTO(), nil, h.errHandler)
 }
 
 func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -96,7 +96,7 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model, err := dto.toModel()
+	model, err := dto.ToModel()
 	if err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
@@ -107,7 +107,7 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handler.Respond(w, r, http.StatusOK, model.toDTO(), nil, h.errHandler)
+	handler.Respond(w, r, http.StatusOK, model.ToDTO(), nil, h.errHandler)
 }
 
 func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
