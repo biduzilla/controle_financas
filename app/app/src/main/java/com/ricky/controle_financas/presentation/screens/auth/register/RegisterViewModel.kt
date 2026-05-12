@@ -3,6 +3,7 @@ package com.ricky.controle_financas.presentation.screens.auth.register
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ricky.controle_financas.domain.model.User
+import com.ricky.controle_financas.domain.use_case.LoginUserCase
 import com.ricky.controle_financas.domain.use_case.SaveUserUseCase
 import com.ricky.controle_financas.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,8 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val saveUserUseCase: SaveUserUseCase
-) : ViewModel(){
+    private val saveUserUseCase: SaveUserUseCase,
+    private val loginUserCase: LoginUserCase,
+) : ViewModel() {
     private val _state = MutableStateFlow(RegisterState())
     val state = _state.asStateFlow()
 
@@ -53,14 +55,17 @@ class RegisterViewModel @Inject constructor(
                 _state.update { it.copy(error = "Nome é obrigatório") }
                 return
             }
+
             currentState.email.isBlank() -> {
                 _state.update { it.copy(error = "Email é obrigatório") }
                 return
             }
+
             currentState.phone.isBlank() -> {
                 _state.update { it.copy(error = "Telefone é obrigatório") }
                 return
             }
+
             currentState.password != currentState.confirmPassword -> {
                 _state.update { it.copy(error = "Senhas não conferem") }
                 return
@@ -74,6 +79,7 @@ class RegisterViewModel @Inject constructor(
                 email = currentState.email,
                 senha = currentState.password
             )
+
             saveUserUseCase(user)
                 .catch { e ->
                     _state.update {
@@ -88,10 +94,12 @@ class RegisterViewModel @Inject constructor(
                         is Resource.Loading -> {
                             _state.update { it.copy(isLoading = true) }
                         }
+
                         is Resource.Success -> {
                             _state.update { it.copy(isLoading = false, error = null) }
-                            _navigation.send(RegisterNavigation.NavigateToHome)
+                            login()
                         }
+
                         is Resource.Error -> {
                             _state.update {
                                 it.copy(
@@ -104,4 +112,62 @@ class RegisterViewModel @Inject constructor(
                 }
         }
     }
+
+    private fun login() {
+        val currentState = _state.value
+
+        if (currentState.isLoading) return
+
+        if (currentState.email.isBlank()) {
+            _state.update { it.copy(error = "Email é obrigatório") }
+            return
+        }
+        if (currentState.password.length < 6) {
+            _state.update { it.copy(error = "Senha deve ter no mínimo 6 caracteres") }
+            return
+        }
+
+        viewModelScope.launch {
+            loginUserCase(currentState.email, currentState.password)
+                .catch { e ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = e.localizedMessage ?: "Erro inesperado"
+                        )
+                    }
+                }
+                .collect { resource ->
+                    when (resource) {
+                        is Resource.Error -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = resource.message ?: "Error"
+                                )
+                            }
+                        }
+
+                        is Resource.Loading -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = true,
+                                )
+                            }
+                        }
+
+                        is Resource.Success -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = null
+                                )
+                            }
+                            _navigation.send(RegisterNavigation.NavigateToHome)
+                        }
+                    }
+                }
+        }
+    }
+
 }
