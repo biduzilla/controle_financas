@@ -66,7 +66,7 @@ func NewRepository(
 func (r *categoryRepository) parseConstraintError(err error) error {
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Constraint {
-		case "categories_nome_key":
+		case "categories_name_user_id_unique":
 			return e.ValidationAlreadyExists("nome")
 		}
 	}
@@ -82,14 +82,14 @@ func (r *categoryRepository) FindById(
 	return r.baseRepository.FindOne(
 		ctx,
 		repository.WithQueryExtraWhere(`
-		id = :id
-		and user_id = :userId
+		c.id = :id
+		and c.user_id = :userId
 	`, map[string]any{
 			"id":     id,
 			"userId": userLogado.GetID(),
 		}),
 		repository.WithJoin(
-			user.Usuario{}, "users", "u", "c.user_id = u.id",
+			user.Usuario{}, "usuarios", "u", "c.user_id = u.id",
 		),
 	)
 }
@@ -113,7 +113,7 @@ func (r *categoryRepository) FindAll(
 				"userId": userLogado.GetID(),
 			}),
 		repository.WithJoin(
-			user.Usuario{}, "users", "u", "c.user_id = u.id",
+			user.Usuario{}, "usuarios", "u", "c.user_id = u.id",
 		),
 	)
 }
@@ -123,12 +123,13 @@ func (r *categoryRepository) Insert(
 	tx *sql.Tx,
 	model *Category,
 ) error {
+	userLogado := contexts.GetUser(ctx)
 	err := r.baseRepository.Insert(
 		ctx,
 		tx,
 		model,
 		repository.WithExtraFields([]string{"user_id"}, map[string]any{
-			"tutor_id": model.User.ID,
+			"user_id": userLogado.GetID(),
 		}),
 	)
 

@@ -5,6 +5,8 @@ import (
 	"controle_financas/internal/core/validator"
 	"controle_financas/internal/features/user"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type TypeCategoria int
@@ -38,15 +40,15 @@ func TypeCategoriaFromString(s string) TypeCategoria {
 
 type Category struct {
 	models.BaseModel
-	ID    int64
-	Name  string
-	Type  TypeCategoria
-	Color string
-	User  *user.Usuario
+	ID    uuid.UUID     `db:"id" repo:"pk,auto"`
+	Name  string        `db:"name" repo:"insert,update"`
+	Type  TypeCategoria `db:"type" repo:"insert,update"`
+	Color string        `db:"color" repo:"insert,update"`
+	User  *user.Usuario `db:"-" repo:"-"`
 }
 
 type CategoryDTO struct {
-	ID        *int64           `json:"category_id"`
+	ID        *uuid.UUID       `json:"id"`
 	CreatedAt *time.Time       `json:"-"`
 	Name      *string          `json:"name"`
 	Type      *string          `json:"type"`
@@ -102,8 +104,11 @@ func (m *Category) ToDTO() *CategoryDTO {
 	typeStr := m.Type.String()
 	category.Type = &typeStr
 	category.Color = &m.Color
-	category.User = m.User.ToDTO()
 	category.Version = &m.Version
+
+	if m.User != nil {
+		category.User = m.User.ToDTO()
+	}
 
 	return category
 }

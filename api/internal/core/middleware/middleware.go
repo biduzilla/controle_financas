@@ -143,7 +143,6 @@ func (m *middleware) EnableCORS(next http.Handler) http.Handler {
 func (m *middleware) RequireAuthenticatedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := contexts.GetUser(r.Context())
-		fmt.Printf("token: %s\n", user)
 
 		if user.IsAnonymous() {
 			m.errHandler.AuthenticationRequiredResponse(w, r)

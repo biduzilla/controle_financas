@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -21,7 +22,7 @@ import (
 )
 
 const (
-	AccessTokenExpiration  = 15 * time.Minute
+	AccessTokenExpiration  = 3 * time.Hour
 	RefreshTokenExpiration = 7 * 24 * time.Hour
 	TokenIssuer            = "controle-financas-api"
 	TokenAudience          = "controle-financas-clients"
@@ -261,7 +262,10 @@ func (s *authService) ValidateToken(
 		if strings.Contains(err.Error(), "token has invalid claims") {
 			return nil, e.ErrInvalidTokenClaims
 		}
-		return nil, fmt.Errorf("failed to parse token: %w", err)
+		return nil, e.NewApiError(
+			fmt.Sprintf("failed to parse token: %s", err.Error()),
+			http.StatusBadRequest,
+		)
 	}
 
 	if !token.Valid {

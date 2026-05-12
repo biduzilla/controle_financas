@@ -19,6 +19,15 @@ type ValidationError struct {
 	FieldErrors map[string]string
 }
 
+type ApiError struct {
+	message string
+	code    int
+}
+
+func (e *ApiError) Error() string {
+	return e.message
+}
+
 func (e *ValidationError) Error() string {
 	return "validation failed"
 }
@@ -57,6 +66,7 @@ var (
 	ErrTokenExpired             = errors.New("token has expired")
 	ErrInvalidTokenType         = errors.New("invalid token type for this operation")
 	ErrInvalidTokenClaims       = errors.New("token claims are invalid or malformed")
+	ErrInvalidTokenSignature    = errors.New("token signature invalid")
 	ErrCountPermissions         = errors.New("one or more permissions do not exist")
 	ErrInactiveAccount          = errors.New("your user account must be activated to access this resource")
 	ErrStartDateAfterEndDate    = errors.New("start date must be before end date")
@@ -67,9 +77,12 @@ var (
 
 func (e *errorHandler) HandlerError(w http.ResponseWriter, r *http.Request, err error) {
 	var valErr *ValidationError
+	var apiError *ApiError
 	switch {
 	case errors.As(err, &valErr):
 		e.FailedValidationResponse(w, r, valErr.FieldErrors)
+	case errors.As(err, &apiError):
+		e.errorHandler(w, r, apiError.code, apiError.message)
 
 	case errors.Is(err, context.DeadlineExceeded):
 		e.RequestTimeoutResponse(w, r)
@@ -110,6 +123,13 @@ func ValidationAlreadyExists(field string) error {
 func NewValidationError(fieldErrors map[string]string) *ValidationError {
 	return &ValidationError{
 		FieldErrors: fieldErrors,
+	}
+}
+
+func NewApiError(message string, code int) *ApiError {
+	return &ApiError{
+		message: message,
+		code:    code,
 	}
 }
 

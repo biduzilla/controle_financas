@@ -154,9 +154,7 @@ func (r *baseRepository[T]) Insert(
 	}
 
 	var returningFields []string
-	if !pk.isAuto {
-		returningFields = append(returningFields, pk.columnName)
-	}
+	returningFields = append(returningFields, pk.columnName)
 	returningFields = append(returningFields, "created_at", "version")
 
 	query := BuildInsertQuery(r.table, params, returningFields, cfg)
@@ -165,40 +163,59 @@ func (r *baseRepository[T]) Insert(
 	queryStr, args := NamedQuery(query, filteredValues)
 	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
 
-	if pk.isAuto {
-		var ret struct {
-			CreatedAt time.Time `db:"created_at"`
-			Version   int       `db:"version"`
+	var createdAt time.Time
+	var version int
+
+	pkPtr := reflect.New(reflect.TypeOf(r.getFieldValue(model, pk.fieldName))).Interface()
+
+	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(pkPtr, &createdAt, &version)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return e.ErrRecordNotFound
 		}
-
-		err = tx.QueryRowContext(ctx, queryStr, args...).Scan(&ret.CreatedAt, &ret.Version)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return e.ErrRecordNotFound
-			}
-			return err
-		}
-
-		r.setFieldValue(model, "CreatedAt", ret.CreatedAt)
-		r.setFieldValue(model, "Version", ret.Version)
-	} else {
-		var createdAt time.Time
-		var version int
-
-		pkPtr := reflect.New(reflect.TypeOf(r.getFieldValue(model, pk.fieldName))).Interface()
-
-		err = tx.QueryRowContext(ctx, queryStr, args...).Scan(pkPtr, &createdAt, &version)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return e.ErrRecordNotFound
-			}
-			return err
-		}
-
-		r.setFieldValue(model, pk.fieldName, reflect.ValueOf(pkPtr).Elem().Interface())
-		r.setFieldValue(model, "CreatedAt", createdAt)
-		r.setFieldValue(model, "Version", version)
+		return err
 	}
+
+	r.setFieldValue(model, pk.fieldName, reflect.ValueOf(pkPtr).Elem().Interface())
+	r.setFieldValue(model, "CreatedAt", createdAt)
+	r.setFieldValue(model, "Version", version)
+
+	// if pk.isAuto {
+	// 	var ret struct {
+	// 		id        uuid.UUID `db:"id"`
+	// 		CreatedAt time.Time `db:"created_at"`
+	// 		Version   int       `db:"version"`
+	// 	}
+
+	// 	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(&ret.id, &ret.CreatedAt, &ret.Version)
+	// 	if err != nil {
+	// 		if errors.Is(err, sql.ErrNoRows) {
+	// 			return e.ErrRecordNotFound
+	// 		}
+	// 		return err
+	// 	}
+
+	// 	r.setFieldValue(model, pk.fieldName, reflect.ValueOf(ret.id).Elem().Interface())
+	// 	r.setFieldValue(model, "CreatedAt", ret.CreatedAt)
+	// 	r.setFieldValue(model, "Version", ret.Version)
+	// } else {
+	// 	var createdAt time.Time
+	// 	var version int
+
+	// 	pkPtr := reflect.New(reflect.TypeOf(r.getFieldValue(model, pk.fieldName))).Interface()
+
+	// 	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(pkPtr, &createdAt, &version)
+	// 	if err != nil {
+	// 		if errors.Is(err, sql.ErrNoRows) {
+	// 			return e.ErrRecordNotFound
+	// 		}
+	// 		return err
+	// 	}
+
+	// 	r.setFieldValue(model, pk.fieldName, reflect.ValueOf(pkPtr).Elem().Interface())
+	// 	r.setFieldValue(model, "CreatedAt", createdAt)
+	// 	r.setFieldValue(model, "Version", version)
+	// }
 
 	return nil
 }

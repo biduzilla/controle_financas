@@ -34,6 +34,7 @@ func NewRouter(
 		errHandler: errHandler,
 		user:       user.NewRouter(handlers.UserHandler, m),
 		auth:       auth.NewRouter(handlers.AuthHandler, m),
+		category:   category.NewRouter(handlers.CategoyHandler, m),
 	}
 }
 
