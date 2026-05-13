@@ -52,10 +52,11 @@ func NewBaseRepository[T any](
 }
 
 type JoinSpec struct {
-	Model any
-	Table string
-	Alias string
-	On    string
+	Model    any
+	Table    string
+	Alias    string
+	On       string
+	JoinType string
 }
 
 type queryConfig struct {
@@ -66,13 +67,19 @@ type queryConfig struct {
 
 type QueryOption func(*queryConfig)
 
-func WithJoin(model any, table, alias, on string) QueryOption {
+func WithJoin(model any, table, alias, on string, joinType *string) QueryOption {
+	jt := "LEFT"
+	if joinType != nil {
+		jt = *joinType
+	}
+
 	return func(c *queryConfig) {
 		c.joins = append(c.joins, JoinSpec{
-			Model: model,
-			Table: table,
-			Alias: alias,
-			On:    on,
+			Model:    model,
+			Table:    table,
+			Alias:    alias,
+			On:       on,
+			JoinType: jt,
 		})
 	}
 }
@@ -316,7 +323,7 @@ func (r *baseRepository[T]) buildJoinClauses(cfg *queryConfig) string {
 
 	var joins []string
 	for _, j := range cfg.joins {
-		joins = append(joins, fmt.Sprintf("LEFT JOIN %s %s ON %s", j.Table, j.Alias, j.On))
+		joins = append(joins, fmt.Sprintf("%s JOIN %s %s ON %s", j.JoinType, j.Table, j.Alias, j.On))
 	}
 	return "\n" + strings.Join(joins, "\n")
 }

@@ -1,0 +1,223 @@
+package transaction
+
+import (
+	"context"
+	"controle_financas/internal/core/contexts"
+	"controle_financas/internal/core/domain/apiError"
+	"controle_financas/internal/core/filters"
+	"controle_financas/internal/core/jsonlog"
+	"controle_financas/internal/core/repository"
+	"controle_financas/internal/features/category"
+	"controle_financas/internal/features/user"
+	"database/sql"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+type transactionRepository struct {
+	db             *sql.DB
+	logger         jsonlog.Logger
+	baseRepository repository.BaseRepository[Transaction]
+}
+
+type TransactionRepository interface {
+	FindById(
+		ctx context.Context,
+		id uuid.UUID,
+	) (*Transaction, error)
+
+	FindAll(
+		ctx context.Context,
+		categoryId *uuid.UUID,
+		startDate, endDate *time.Time,
+		f filters.Filters,
+		search ...string,
+	) ([]*Transaction, filters.Metadata, error)
+
+	Insert(
+		ctx context.Context,
+		tx *sql.Tx,
+		model *Transaction,
+	) error
+
+	Update(
+		ctx context.Context,
+		tx *sql.Tx,
+		model *Transaction,
+	) error
+
+	DeleteById(
+		ctx context.Context,
+		tx *sql.Tx,
+		id uuid.UUID,
+	) error
+}
+
+func NewRepository(
+	db *sql.DB,
+	logger jsonlog.Logger,
+) TransactionRepository {
+	return &transactionRepository{
+		db:     db,
+		logger: logger,
+		baseRepository: repository.NewBaseRepository[Transaction](
+			db,
+			logger,
+			"transactions",
+			"t",
+		),
+	}
+}
+
+func (r *transactionRepository) FindAll(
+	ctx context.Context,
+	categoryId *uuid.UUID,
+	startDate, endDate *time.Time,
+	f filters.Filters,
+	search ...string,
+) ([]*Transaction, filters.Metadata, error) {
+	userAuth := contexts.GetUser(ctx)
+
+	start := sql.NullTime{}
+	if startDate != nil {
+		start.Valid = true
+		start.Time = *startDate
+	}
+
+	end := sql.NullTime{}
+	if endDate != nil {
+		end.Valid = true
+		end.Time = endDate.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+	}
+
+	query := `
+	AND t.user_id = :userId
+	AND (:categoryId = 0 OR t.category_id = :categoryId)
+	AND (:startDate::timestamptz IS NULL OR t.created_at >= :startDate::timestamptz)
+	AND (:endDate::timestamptz IS NULL OR t.created_at <= :endDate::timestamptz)
+	`
+
+	params := map[string]any{
+		"userId":     userAuth.GetID(),
+		"categoryId": categoryId,
+		"startDate":  start,
+		"endDate":    end,
+	}
+
+	joinType := "INNER"
+	return r.baseRepository.FindWithFilters(
+		ctx,
+		f,
+		repository.WithQueryExtraWhere(query, params),
+		repository.WithJoin(
+			category.Category{},
+			"categories",
+			"c",
+			"t.category_id = c.id",
+			&joinType,
+		),
+		repository.WithJoin(
+			user.Usuario{},
+			"usuarios",
+			"u",
+			"t.user_id = u.id",
+			nil,
+		),
+	)
+}
+
+func (r *transactionRepository) FindById(
+	ctx context.Context,
+	id uuid.UUID,
+) (*Transaction, error) {
+	userAuth := contexts.GetUser(ctx)
+	joinType := "INNER"
+
+	return r.baseRepository.FindById(
+		ctx,
+		id,
+		repository.WithQueryExtraWhere(`
+			t.user_id = :userId
+		`, map[string]any{
+			"userId": userAuth.GetID(),
+		}),
+		repository.WithJoin(
+			category.Category{},
+			"categories",
+			"c",
+			"t.category_id = c.id",
+			&joinType,
+		),
+		repository.WithJoin(
+			user.Usuario{},
+			"usuarios",
+			"u",
+			"t.user_id = u.id",
+			nil,
+		),
+	)
+}
+
+func (r *transactionRepository) Insert(
+	ctx context.Context,
+	tx *sql.Tx,
+	model *Transaction,
+) error {
+	userAuth := contexts.GetUser(ctx)
+	if model.Category == nil {
+		return apiError.ErrRecordNotFound
+	}
+
+	return r.baseRepository.Insert(
+		ctx,
+		tx,
+		model,
+		repository.WithExtraFields([]string{"user_id", "category_id"}, map[string]any{
+			"user_id":     userAuth.GetID(),
+			"category_id": model.Category.ID,
+		}),
+	)
+}
+
+func (r *transactionRepository) Update(
+	ctx context.Context,
+	tx *sql.Tx,
+	model *Transaction,
+) error {
+	userAuth := contexts.GetUser(ctx)
+	if model.Category == nil {
+		return apiError.ErrRecordNotFound
+	}
+
+	return r.baseRepository.Update(
+		ctx,
+		tx,
+		model,
+		repository.WithExtraFields([]string{"user_id", "category_id"}, map[string]any{
+			"user_id":     userAuth.GetID(),
+			"category_id": model.Category.ID,
+		}),
+		repository.WithExtraWhere("user_id = :userId", map[string]any{
+			"userId": userAuth.GetID(),
+		}),
+	)
+}
+
+func (r *transactionRepository) DeleteById(
+	ctx context.Context,
+	tx *sql.Tx,
+	id uuid.UUID,
+) error {
+	userAuth := contexts.GetUser(ctx)
+
+	return r.baseRepository.DeleteByQuery(
+		ctx,
+		tx,
+		repository.WithQueryExtraWhere("id = :id and user_id = :userId",
+			map[string]any{
+				"id":     id,
+				"userId": userAuth.GetID(),
+			}),
+	)
+}

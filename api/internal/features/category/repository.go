@@ -89,7 +89,11 @@ func (r *categoryRepository) FindById(
 			"userId": userLogado.GetID(),
 		}),
 		repository.WithJoin(
-			user.Usuario{}, "usuarios", "u", "c.user_id = u.id",
+			user.Usuario{},
+			"usuarios",
+			"u",
+			"c.user_id = u.id",
+			nil,
 		),
 	)
 }
@@ -113,7 +117,11 @@ func (r *categoryRepository) FindAll(
 				"userId": userLogado.GetID(),
 			}),
 		repository.WithJoin(
-			user.Usuario{}, "usuarios", "u", "c.user_id = u.id",
+			user.Usuario{},
+			"usuarios",
+			"u",
+			"c.user_id = u.id",
+			nil,
 		),
 	)
 }
