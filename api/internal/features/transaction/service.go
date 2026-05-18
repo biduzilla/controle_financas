@@ -18,6 +18,11 @@ type transactionService struct {
 }
 
 type TransactionService interface {
+	BalanceSummary(
+		ctx context.Context,
+		startDate, endDate *time.Time,
+	) (BalanceSummary, error)
+
 	FindById(
 		ctx context.Context,
 		id uuid.UUID,
@@ -57,6 +62,21 @@ func NewService(
 		repo: repo,
 		tx:   tx,
 	}
+}
+
+func (s *transactionService) BalanceSummary(
+	ctx context.Context,
+	startDate, endDate *time.Time,
+) (BalanceSummary, error) {
+	var endAdjusted *time.Time
+	if endDate != nil {
+		t := endDate.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+		endAdjusted = &t
+	} else {
+		endAdjusted = nil
+	}
+
+	return s.repo.GetBalanceSummary(ctx, startDate, endAdjusted)
 }
 
 func (s *transactionService) FindById(

@@ -10,6 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type BalanceSummary struct {
+	TotalIncome    float64 `json:"total_income"`
+	TotalExpense   float64 `json:"total_expense"`
+	CurrentBalance float64 `json:"current_balance"`
+}
+
 type Transaction struct {
 	models.BaseModel
 	ID          uuid.UUID          `db:"id" repo:"pk,auto"`

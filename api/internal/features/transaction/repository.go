@@ -9,6 +9,7 @@ import (
 	"controle_financas/internal/core/repository"
 	"controle_financas/internal/features/category"
 	"controle_financas/internal/features/user"
+	"controle_financas/utils"
 	"database/sql"
 	"time"
 
@@ -22,6 +23,11 @@ type transactionRepository struct {
 }
 
 type TransactionRepository interface {
+	GetBalanceSummary(
+		ctx context.Context,
+		startDate, endDate *time.Time,
+	) (BalanceSummary, error)
+
 	FindById(
 		ctx context.Context,
 		id uuid.UUID,
@@ -68,6 +74,50 @@ func NewRepository(
 			"t",
 		),
 	}
+}
+
+func (r *transactionRepository) GetBalanceSummary(
+	ctx context.Context,
+	startDate, endDate *time.Time,
+) (BalanceSummary, error) {
+	var summary BalanceSummary
+
+	start := sql.NullTime{}
+	if startDate != nil {
+		start.Valid = true
+		start.Time = *startDate
+	}
+	end := sql.NullTime{}
+	if endDate != nil {
+		end.Valid = true
+		end.Time = *endDate
+	}
+
+	query := `
+        SELECT
+            COALESCE(SUM(CASE WHEN c.type = 1 THEN t.amount ELSE 0 END), 0) as total_income,
+            COALESCE(SUM(CASE WHEN c.type = 2 THEN t.amount ELSE 0 END), 0) as total_expense
+        FROM transactions t
+        INNER JOIN categories c ON t.category_id = c.id
+        WHERE t.user_id = :userId
+          AND (:startDate::timestamptz IS NULL OR t.created_at >= :startDate::timestamptz)
+          AND (:endDate::timestamptz IS NULL OR t.created_at <= :endDate::timestamptz)
+    `
+
+	params := map[string]any{
+		"userId":    contexts.GetUser(ctx).GetID(),
+		"startDate": start,
+		"endDate":   end,
+	}
+
+	query, args := repository.NamedQuery(query, params)
+	r.logger.PrintInfo(utils.MinifySQL(query), nil)
+
+	err := r.db.QueryRowContext(ctx, query, args).Scan(
+		&summary.TotalIncome, &summary.TotalExpense,
+	)
+
+	return summary, err
 }
 
 func (r *transactionRepository) FindAll(

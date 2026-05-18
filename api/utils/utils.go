@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	"maps"
 	"net/http"
 	"reflect"
@@ -15,6 +16,21 @@ type Envelope map[string]any
 
 func MinifySQL(s string) string {
 	return strings.Join(strings.Fields(s), " ")
+}
+
+func parseMonthYear(monthStr, yearStr string) (time.Time, time.Time, error) {
+	month, err := strconv.Atoi(monthStr)
+	if err != nil || month < 1 || month > 12 {
+		return time.Time{}, time.Time{}, fmt.Errorf("invalid month")
+	}
+	year, err := strconv.Atoi(yearStr)
+	if err != nil || year < 0 {
+		return time.Time{}, time.Time{}, fmt.Errorf("invalid year")
+	}
+	loc := time.UTC // ou time.Local
+	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, loc)
+	end := start.AddDate(0, 1, -1)
+	return start, end, nil
 }
 
 func WriteJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
