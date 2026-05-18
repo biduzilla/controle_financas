@@ -5,6 +5,7 @@ import (
 	"controle_financas/internal/core/middleware"
 	"controle_financas/internal/features/auth"
 	"controle_financas/internal/features/category"
+	"controle_financas/internal/features/transaction"
 	"controle_financas/internal/features/user"
 	"expvar"
 	"net/http"
@@ -13,11 +14,12 @@ import (
 )
 
 type router struct {
-	errHandler apiError.ErrorHandler
-	m          middleware.Middleware
-	user       user.UserRouter
-	auth       auth.AuthRouter
-	category   category.CategoryRouter
+	errHandler  apiError.ErrorHandler
+	m           middleware.Middleware
+	user        user.UserRouter
+	auth        auth.AuthRouter
+	category    category.CategoryRouter
+	transaction transaction.TransactionRouter
 }
 
 type Router interface {
@@ -61,6 +63,7 @@ func (router *router) RegisterRoutes() *chi.Mux {
 		router.user.Routes(r)
 		router.auth.Routes(r)
 		router.category.Routes(r)
+		router.transaction.Routes(r)
 	})
 
 	return r

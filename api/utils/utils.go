@@ -18,7 +18,7 @@ func MinifySQL(s string) string {
 	return strings.Join(strings.Fields(s), " ")
 }
 
-func parseMonthYear(monthStr, yearStr string) (time.Time, time.Time, error) {
+func ParseMonthYear(monthStr, yearStr string) (time.Time, time.Time, error) {
 	month, err := strconv.Atoi(monthStr)
 	if err != nil || month < 1 || month > 12 {
 		return time.Time{}, time.Time{}, fmt.Errorf("invalid month")
