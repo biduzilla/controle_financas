@@ -6,26 +6,26 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type transactionRouter struct {
-	handler TransactionHandler
+type TransactionRouter struct {
+	handler transactionHandler
 	m       middleware.Middleware
 }
 
-type TransactionRouter interface {
+type transactionRouter interface {
 	Routes(router chi.Router)
 }
 
 func NewRouter(
-	handler TransactionHandler,
+	handler transactionHandler,
 	m middleware.Middleware,
-) TransactionRouter {
-	return &transactionRouter{
+) *TransactionRouter {
+	return &TransactionRouter{
 		handler: handler,
 		m:       m,
 	}
 }
 
-func (r *transactionRouter) Routes(router chi.Router) {
+func (r *TransactionRouter) Routes(router chi.Router) {
 	router.Route("/transactions", func(router chi.Router) {
 		router.Group(func(router chi.Router) {
 			router.Use(r.m.RequireActivatedUser)

@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type userService struct {
-	repo UserRepository
+type UserService struct {
+	repo userRepository
 	tx   transaction.Manager
 }
 
-type UserService interface {
+type userService interface {
 	FindById(ctx context.Context, id uuid.UUID) (*Usuario, error)
 	FindByEmail(ctx context.Context, email string) (*Usuario, error)
 	Save(ctx context.Context, model *Usuario, tx *sql.Tx) error
@@ -24,24 +24,24 @@ type UserService interface {
 }
 
 func NewService(
-	repo UserRepository,
+	repo userRepository,
 	tx transaction.Manager,
-) UserService {
-	return &userService{
+) *UserService {
+	return &UserService{
 		repo: repo,
 		tx:   tx,
 	}
 }
 
-func (s *userService) FindById(ctx context.Context, id uuid.UUID) (*Usuario, error) {
+func (s *UserService) FindById(ctx context.Context, id uuid.UUID) (*Usuario, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *userService) FindByEmail(ctx context.Context, email string) (*Usuario, error) {
+func (s *UserService) FindByEmail(ctx context.Context, email string) (*Usuario, error) {
 	return s.repo.FindByEmail(ctx, email)
 }
 
-func (s *userService) Save(ctx context.Context, model *Usuario, tx *sql.Tx) error {
+func (s *UserService) Save(ctx context.Context, model *Usuario, tx *sql.Tx) error {
 	fn := func(tx *sql.Tx) error {
 		v := validator.New()
 		if model.Validate(v); !v.Valid() {
@@ -58,7 +58,7 @@ func (s *userService) Save(ctx context.Context, model *Usuario, tx *sql.Tx) erro
 	return s.tx.RunInTx(ctx, fn)
 }
 
-func (s *userService) Update(ctx context.Context, model *Usuario, tx *sql.Tx) error {
+func (s *UserService) Update(ctx context.Context, model *Usuario, tx *sql.Tx) error {
 	fn := func(tx *sql.Tx) error {
 		v := validator.New()
 		if model.Validate(v); !v.Valid() {
@@ -75,7 +75,7 @@ func (s *userService) Update(ctx context.Context, model *Usuario, tx *sql.Tx) er
 	return s.tx.RunInTx(ctx, fn)
 }
 
-func (s *userService) DeleteById(ctx context.Context, id uuid.UUID, tx *sql.Tx) error {
+func (s *UserService) DeleteById(ctx context.Context, id uuid.UUID, tx *sql.Tx) error {
 	fn := func(tx *sql.Tx) error {
 		return s.repo.DeleteById(ctx, tx, id)
 	}

@@ -21,6 +21,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type userFinder interface {
+	FindByEmail(ctx context.Context, email string) (*user.Usuario, error)
+}
+
 const (
 	AccessTokenExpiration  = 3 * time.Hour
 	RefreshTokenExpiration = 7 * 24 * time.Hour
@@ -43,14 +47,14 @@ type TokenClaims struct {
 	jwt.RegisteredClaims
 }
 
-type authService struct {
-	userService user.UserService
-	config      config.Config
-	privateKey  *rsa.PrivateKey
-	publicKey   *rsa.PublicKey
+type AuthService struct {
+	userFinder userFinder
+	config     config.Config
+	privateKey *rsa.PrivateKey
+	publicKey  *rsa.PublicKey
 }
 
-type AuthService interface {
+type authService interface {
 	Login(ctx context.Context, email, password string) (accessToken, refreshToken string, expiration time.Duration, err error)
 	ExtractAuthenticatedUser(tokenString string) (security.UserDetails, error)
 	RefreshToken(ctx context.Context, refreshToken string) (string, error)
@@ -59,12 +63,12 @@ type AuthService interface {
 }
 
 func NewService(
-	userService user.UserService,
+	userFinder userFinder,
 	config config.Config,
-) (AuthService, error) {
-	service := &authService{
-		userService: userService,
-		config:      config,
+) (*AuthService, error) {
+	service := &AuthService{
+		userFinder: userFinder,
+		config:     config,
 	}
 
 	if err := service.loadKeys(); err != nil {
@@ -74,7 +78,7 @@ func NewService(
 	return service, nil
 }
 
-func (s *authService) loadKeys() error {
+func (s *AuthService) loadKeys() error {
 	privateKey, err := loadRSAPrivateKey(s.config.Security.PrivateKeyPath)
 	if err != nil {
 		return fmt.Errorf("failed to load private key: %w", err)
@@ -150,7 +154,7 @@ func loadRSAPublicKey(path string) (*rsa.PublicKey, error) {
 	return rsaKey, nil
 }
 
-func (s *authService) Login(
+func (s *AuthService) Login(
 	ctx context.Context,
 	email, password string,
 ) (string, string, time.Duration, error) {
@@ -160,7 +164,7 @@ func (s *authService) Login(
 		return "", "", AccessTokenExpiration, apiError.NewValidationError(v.Errors)
 	}
 
-	user, err := s.userService.FindByEmail(ctx, email)
+	user, err := s.userFinder.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, apiError.ErrRecordNotFound) {
 			return "", "", AccessTokenExpiration, apiError.ErrInvalidCredentials
@@ -194,7 +198,7 @@ func (s *authService) Login(
 	return accessToken, refreshToken, AccessTokenExpiration, nil
 }
 
-func (s *authService) ExtractAuthenticatedUser(
+func (s *AuthService) ExtractAuthenticatedUser(
 	tokenString string,
 ) (security.UserDetails, error) {
 	claims, err := s.ValidateToken(tokenString, TokenTypeAccess)
@@ -209,7 +213,7 @@ func (s *authService) ExtractAuthenticatedUser(
 	), nil
 }
 
-func (s *authService) RefreshToken(
+func (s *AuthService) RefreshToken(
 	ctx context.Context,
 	refreshToken string,
 ) (string, error) {
@@ -218,7 +222,7 @@ func (s *authService) RefreshToken(
 		return "", err
 	}
 
-	user, err := s.userService.FindByEmail(ctx, claims.Username)
+	user, err := s.userFinder.FindByEmail(ctx, claims.Username)
 	if err != nil {
 		if errors.Is(err, apiError.ErrRecordNotFound) {
 			return "", apiError.ErrInvalidCredentials
@@ -233,7 +237,7 @@ func (s *authService) RefreshToken(
 	return s.createToken(user, TokenTypeAccess, AccessTokenExpiration)
 }
 
-func (s *authService) ValidateToken(
+func (s *AuthService) ValidateToken(
 	tokenString string,
 	expectedType TokenType,
 ) (*TokenClaims, error) {
@@ -288,7 +292,7 @@ func (s *authService) ValidateToken(
 	return claims, nil
 }
 
-func (s *authService) createToken(
+func (s *AuthService) createToken(
 	user security.UserDetails,
 	tokenType TokenType,
 	expiration time.Duration,
@@ -314,6 +318,6 @@ func (s *authService) createToken(
 	return token.SignedString(s.privateKey)
 }
 
-func (s *authService) GetPublicKey() *rsa.PublicKey {
+func (s *AuthService) GetPublicKey() *rsa.PublicKey {
 	return s.publicKey
 }

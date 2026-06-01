@@ -11,12 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type categoryService struct {
-	repo CategoryRepository
+type CategoryService struct {
+	repo categoryRepository
 	tx   transaction.Manager
 }
 
-type CategoryService interface {
+type categoryService interface {
 	FindById(
 		ctx context.Context,
 		id uuid.UUID,
@@ -47,23 +47,23 @@ type CategoryService interface {
 }
 
 func NewService(
-	repo CategoryRepository,
+	repo categoryRepository,
 	tx transaction.Manager,
-) CategoryService {
-	return &categoryService{
+) *CategoryService {
+	return &CategoryService{
 		repo: repo,
 		tx:   tx,
 	}
 }
 
-func (s *categoryService) FindById(
+func (s *CategoryService) FindById(
 	ctx context.Context,
 	id uuid.UUID,
 ) (*Category, error) {
 	return s.repo.FindById(ctx, id)
 }
 
-func (s *categoryService) FindAll(
+func (s *CategoryService) FindAll(
 	ctx context.Context,
 	f filters.Filters,
 	search ...string,
@@ -71,7 +71,7 @@ func (s *categoryService) FindAll(
 	return s.repo.FindAll(ctx, f, search...)
 }
 
-func (s *categoryService) Insert(
+func (s *CategoryService) Insert(
 	ctx context.Context,
 	model *Category,
 	tx *sql.Tx,
@@ -91,7 +91,7 @@ func (s *categoryService) Insert(
 	return s.tx.RunInTx(ctx, saveFn)
 }
 
-func (s *categoryService) Update(
+func (s *CategoryService) Update(
 	ctx context.Context,
 	model *Category,
 	tx *sql.Tx,
@@ -111,7 +111,7 @@ func (s *categoryService) Update(
 	return s.tx.RunInTx(ctx, updateFn)
 }
 
-func (s *categoryService) DeleteById(
+func (s *CategoryService) DeleteById(
 	ctx context.Context,
 	id uuid.UUID,
 	tx *sql.Tx,

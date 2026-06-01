@@ -3,7 +3,7 @@ package user
 import (
 	"controle_financas/internal/core/domain/models"
 	"controle_financas/internal/core/validator"
-	"controle_financas/utils"
+	"controle_financas/pkg/validatorutil"
 	"errors"
 
 	"github.com/google/uuid"
@@ -96,7 +96,7 @@ func (u *Usuario) Validate(v *validator.Validator) {
 	v.Check(len(u.Nome) >= 3, "nome", "must be at least 3 characters long")
 	v.Check(len(u.Nome) <= 100, "nome", "must not be more than 100 characters long")
 	v.Check(u.Telefone != "", "telefone", "must be provided")
-	v.Check(utils.ValidateTelefone(u.Telefone), "telefone", "invalid telephone format")
+	v.Check(validatorutil.ValidateTelefone(u.Telefone), "telefone", "invalid telephone format")
 	v.Check(u.Email != "", "email", "must be provided")
 	v.Check(validator.Matches(u.Email, validator.EmailRX), "email", "must be a valid email address")
 }

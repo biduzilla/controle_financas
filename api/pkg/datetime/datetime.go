@@ -1,22 +1,12 @@
-package utils
+package datetime
 
 import (
-	"encoding/json"
 	"fmt"
-	"maps"
-	"net/http"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
-
-type Envelope map[string]any
-
-func MinifySQL(s string) string {
-	return strings.Join(strings.Fields(s), " ")
-}
 
 func ParseMonthYear(monthStr, yearStr string) (time.Time, time.Time, error) {
 	month, err := strconv.Atoi(monthStr)
@@ -27,40 +17,10 @@ func ParseMonthYear(monthStr, yearStr string) (time.Time, time.Time, error) {
 	if err != nil || year < 0 {
 		return time.Time{}, time.Time{}, fmt.Errorf("invalid year")
 	}
-	loc := time.UTC // ou time.Local
+	loc := time.UTC
 	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, loc)
 	end := start.AddDate(0, 1, -1)
 	return start, end, nil
-}
-
-func WriteJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
-	js, err := json.MarshalIndent(data, "", "\t")
-	if err != nil {
-		return err
-	}
-
-	js = append(js, '\n')
-	maps.Copy(w.Header(), headers)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	w.Write(js)
-	return nil
-}
-
-func GetTypeName(v any) string {
-	t := reflect.TypeOf(v)
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-	return strings.ToLower(t.Name())
-}
-
-func ValidateTelefone(telefone string) bool {
-	telefone = regexp.MustCompile(`[^\d]`).ReplaceAllString(telefone, "")
-
-	match, _ := regexp.MatchString(`^\d{2}9\d{8}$`, telefone)
-	return match
 }
 
 func ValidateDate(data string) bool {
@@ -69,18 +29,14 @@ func ValidateDate(data string) bool {
 	if !matched {
 		return false
 	}
-
 	parts := strings.Split(data, "/")
 	if len(parts) != 3 {
 		return false
 	}
-
 	day, _ := strconv.Atoi(parts[0])
 	month, _ := strconv.Atoi(parts[1])
 	year, _ := strconv.Atoi(parts[2])
-
 	date := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-
 	return date.Year() == year && int(date.Month()) == month && date.Day() == day
 }
 
@@ -90,17 +46,13 @@ func ValidateDateISO(data string) bool {
 	if !matched {
 		return false
 	}
-
 	parts := strings.Split(data, "-")
 	if len(parts) != 3 {
 		return false
 	}
-
 	year, _ := strconv.Atoi(parts[0])
 	month, _ := strconv.Atoi(parts[1])
 	day, _ := strconv.Atoi(parts[2])
-
 	date := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-
 	return date.Year() == year && int(date.Month()) == month && date.Day() == day
 }

@@ -9,20 +9,20 @@ import (
 	"controle_financas/internal/core/repository"
 	"controle_financas/internal/features/category"
 	"controle_financas/internal/features/user"
-	"controle_financas/utils"
+	"controle_financas/pkg/sqlformat"
 	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type transactionRepository struct {
+type TransactionRepository struct {
 	db             *sql.DB
 	logger         jsonlog.Logger
 	baseRepository repository.BaseRepository[Transaction]
 }
 
-type TransactionRepository interface {
+type transactionRepository interface {
 	GetBalanceSummary(
 		ctx context.Context,
 		startDate, endDate *time.Time,
@@ -63,8 +63,8 @@ type TransactionRepository interface {
 func NewRepository(
 	db *sql.DB,
 	logger jsonlog.Logger,
-) TransactionRepository {
-	return &transactionRepository{
+) *TransactionRepository {
+	return &TransactionRepository{
 		db:     db,
 		logger: logger,
 		baseRepository: repository.NewBaseRepository[Transaction](
@@ -76,7 +76,7 @@ func NewRepository(
 	}
 }
 
-func (r *transactionRepository) GetBalanceSummary(
+func (r TransactionRepository) GetBalanceSummary(
 	ctx context.Context,
 	startDate, endDate *time.Time,
 ) (BalanceSummary, error) {
@@ -111,7 +111,7 @@ func (r *transactionRepository) GetBalanceSummary(
 	}
 
 	query, args := repository.NamedQuery(query, params)
-	r.logger.PrintInfo(utils.MinifySQL(query), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(query), nil)
 
 	err := r.db.QueryRowContext(ctx, query, args).Scan(
 		&summary.TotalIncome, &summary.TotalExpense,
@@ -120,7 +120,7 @@ func (r *transactionRepository) GetBalanceSummary(
 	return summary, err
 }
 
-func (r *transactionRepository) FindAll(
+func (r TransactionRepository) FindAll(
 	ctx context.Context,
 	categoryId *uuid.UUID,
 	startDate, endDate *time.Time,
@@ -177,7 +177,7 @@ func (r *transactionRepository) FindAll(
 	)
 }
 
-func (r *transactionRepository) FindById(
+func (r TransactionRepository) FindById(
 	ctx context.Context,
 	id uuid.UUID,
 ) (*Transaction, error) {
@@ -209,7 +209,7 @@ func (r *transactionRepository) FindById(
 	)
 }
 
-func (r *transactionRepository) Insert(
+func (r TransactionRepository) Insert(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *Transaction,
@@ -230,7 +230,7 @@ func (r *transactionRepository) Insert(
 	)
 }
 
-func (r *transactionRepository) Update(
+func (r TransactionRepository) Update(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *Transaction,
@@ -254,7 +254,7 @@ func (r *transactionRepository) Update(
 	)
 }
 
-func (r *transactionRepository) DeleteById(
+func (r TransactionRepository) DeleteById(
 	ctx context.Context,
 	tx *sql.Tx,
 	id uuid.UUID,

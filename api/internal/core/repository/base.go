@@ -6,7 +6,7 @@ import (
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/filters"
 	"controle_financas/internal/core/jsonlog"
-	"controle_financas/utils"
+	"controle_financas/pkg/sqlformat"
 	"database/sql"
 	"fmt"
 	"maps"
@@ -42,7 +42,7 @@ func NewBaseRepository[T any](
 	logger jsonlog.Logger,
 	tableName string,
 	alias string,
-) BaseRepository[T] {
+) *baseRepository[T] {
 	return &baseRepository[T]{
 		db:     db,
 		logger: logger,
@@ -118,7 +118,7 @@ func (r *baseRepository[T]) Exists(ctx context.Context, opts ...QueryOption) (bo
     `, r.table, cfg.extraWhere, r.alias)
 
 	namedQuery, args := NamedQuery(queryStr, cfg.extraParams)
-	r.logger.PrintInfo(utils.MinifySQL(namedQuery), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(namedQuery), nil)
 
 	var exists bool
 	err := r.db.QueryRowContext(ctx, namedQuery, args...).Scan(&exists)
@@ -145,7 +145,7 @@ func (r *baseRepository[T]) FindById(
 	cfg.extraParams["id"] = id
 
 	query, args := NamedQuery(query, cfg.extraParams)
-	r.logger.PrintInfo(utils.MinifySQL(query), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(query), nil)
 
 	return GetByQuery[T](ctx, r.db, query, args)
 }
@@ -166,7 +166,7 @@ func (r *baseRepository[T]) Find(
 	`, r.selectColumns(cfg), r.table, r.alias, r.buildJoinClauses(cfg), cfg.extraWhere, r.alias)
 
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
-	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
 	return ListQuery(ctx, r.db, queryStr, args, r.factory)
 }
@@ -188,7 +188,7 @@ func (r *baseRepository[T]) FindOne(
 	`, r.selectColumns(cfg), r.table, r.alias, r.buildJoinClauses(cfg), cfg.extraWhere, r.alias)
 
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
-	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
 	return GetByQuery[T](ctx, r.db, queryStr, args)
 }
@@ -203,7 +203,7 @@ func (r *baseRepository[T]) Count(ctx context.Context, opts ...QueryOption) (int
     `, r.table, r.alias, cfg.extraWhere, r.alias)
 
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
-	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
 	var count int64
 	err := r.db.QueryRowContext(ctx, queryStr, args...).Scan(&count)
@@ -240,7 +240,7 @@ func (r *baseRepository[T]) FindWithFilters(
 	cfg.extraParams["offset"] = f.Offset()
 
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
-	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
 	return PaginatedQuery(ctx, r.db, queryStr, args, f, r.factory)
 }
@@ -266,7 +266,7 @@ func (r *baseRepository[T]) DeleteByQuery(
 	cfg.extraParams["userID"] = user.GetID()
 
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
-	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
 	result, err := tx.ExecContext(ctx, queryStr, args...)
 	if err != nil {

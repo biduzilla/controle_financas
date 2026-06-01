@@ -9,9 +9,9 @@ import (
 )
 
 type repositories struct {
-	user.UserRepository
-	category.CategoryRepository
-	transaction.TransactionRepository
+	*user.UserRepository
+	*category.CategoryRepository
+	*transaction.TransactionRepository
 }
 
 func NewRepositories(

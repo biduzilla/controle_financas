@@ -16,10 +16,10 @@ import (
 type router struct {
 	errHandler  apiError.ErrorHandler
 	m           middleware.Middleware
-	user        user.UserRouter
-	auth        auth.AuthRouter
-	category    category.CategoryRouter
-	transaction transaction.TransactionRouter
+	user        *user.UserRouter
+	auth        *auth.AuthRouter
+	category    *category.CategoryRouter
+	transaction *transaction.TransactionRouter
 }
 
 type Router interface {
@@ -32,11 +32,12 @@ func NewRouter(
 	m middleware.Middleware,
 ) Router {
 	return &router{
-		m:          m,
-		errHandler: errHandler,
-		user:       user.NewRouter(handlers.UserHandler, m),
-		auth:       auth.NewRouter(handlers.AuthHandler, m),
-		category:   category.NewRouter(handlers.CategoyHandler, m),
+		m:           m,
+		errHandler:  errHandler,
+		user:        user.NewRouter(handlers.UserHandler, m),
+		auth:        auth.NewRouter(handlers.AuthHandler, m),
+		category:    category.NewRouter(handlers.CategoyHandler, m),
+		transaction: transaction.NewRouter(handlers.TransactionHandler, m),
 	}
 }
 

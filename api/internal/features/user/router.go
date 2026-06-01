@@ -6,26 +6,26 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type userRouter struct {
-	handler UserHandler
+type UserRouter struct {
+	handler userHandler
 	m       middleware.Middleware
 }
 
-type UserRouter interface {
+type userRouter interface {
 	Routes(router chi.Router)
 }
 
 func NewRouter(
-	handler UserHandler,
+	handler userHandler,
 	m middleware.Middleware,
-) UserRouter {
-	return &userRouter{
+) *UserRouter {
+	return &UserRouter{
 		handler: handler,
 		m:       m,
 	}
 }
 
-func (r *userRouter) Routes(router chi.Router) {
+func (r *UserRouter) Routes(router chi.Router) {
 	router.Route("/user", func(router chi.Router) {
 		router.Post("/", r.handler.Save)
 

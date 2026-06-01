@@ -3,16 +3,17 @@ package category
 import (
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
-	"controle_financas/utils"
+	"controle_financas/pkg/httpjson"
+	"controle_financas/pkg/httputil"
 	"net/http"
 )
 
-type categoyHandler struct {
-	service    CategoryService
+type CategoyHandler struct {
+	service    categoryService
 	errHandler apiError.ErrorHandler
 }
 
-type CategoyHandler interface {
+type categoyHandler interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	FindByID(w http.ResponseWriter, r *http.Request)
 	Save(w http.ResponseWriter, r *http.Request)
@@ -21,17 +22,17 @@ type CategoyHandler interface {
 }
 
 func NewHandler(
-	service CategoryService,
+	service categoryService,
 	errHandler apiError.ErrorHandler,
-) CategoyHandler {
-	return &categoyHandler{
+) *CategoyHandler {
+	return &CategoyHandler{
 		service:    service,
 		errHandler: errHandler,
 	}
 }
 
-func (h *categoyHandler) FindAll(w http.ResponseWriter, r *http.Request) {
-	name := handler.ReadStringParam(r, "name", "")
+func (h *CategoyHandler) FindAll(w http.ResponseWriter, r *http.Request) {
+	name := httputil.ReadStringParam(r, "name", "")
 	f, err := handler.GetFilters(r, []string{"nome", "-nome"})
 	if err != nil {
 		h.errHandler.HandlerError(w, r, err)
@@ -54,7 +55,7 @@ func (h *categoyHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 		w,
 		r,
 		http.StatusOK,
-		utils.Envelope{
+		httpjson.Envelope{
 			"content":  dtos,
 			"metadata": metadata,
 		},
@@ -63,7 +64,7 @@ func (h *categoyHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *categoyHandler) FindByID(w http.ResponseWriter, r *http.Request) {
+func (h *CategoyHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	id, ok := handler.ParseUUID(w, r, h.errHandler)
 	if !ok {
 		return
@@ -84,9 +85,9 @@ func (h *categoyHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *categoyHandler) Save(w http.ResponseWriter, r *http.Request) {
+func (h *CategoyHandler) Save(w http.ResponseWriter, r *http.Request) {
 	var dto CategoryDTO
-	if err := handler.ReadJSON(w, r, &dto); err != nil {
+	if err := httputil.ReadJSON(w, r, &dto); err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
 	}
@@ -105,9 +106,9 @@ func (h *categoyHandler) Save(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(w, r, http.StatusCreated, model.ToDTO(), nil, h.errHandler)
 }
 
-func (h *categoyHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *CategoyHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var dto CategoryDTO
-	if err := handler.ReadJSON(w, r, &dto); err != nil {
+	if err := httputil.ReadJSON(w, r, &dto); err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
 	}
@@ -126,7 +127,7 @@ func (h *categoyHandler) Update(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(w, r, http.StatusOK, model.ToDTO(), nil, h.errHandler)
 }
 
-func (h *categoyHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
+func (h *CategoyHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 	id, ok := handler.ParseUUID(w, r, h.errHandler)
 	if !ok {
 		return

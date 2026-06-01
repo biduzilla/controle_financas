@@ -11,13 +11,13 @@ import (
 	"github.com/lib/pq"
 )
 
-type userRepository struct {
+type UserRepository struct {
 	db     *sql.DB
 	logger jsonlog.Logger
 	repository.BaseRepository[Usuario]
 }
 
-type UserRepository interface {
+type userRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*Usuario, error)
 	FindByEmail(ctx context.Context, email string) (*Usuario, error)
 	Save(ctx context.Context, tx *sql.Tx, model *Usuario) error
@@ -28,8 +28,8 @@ type UserRepository interface {
 func NewRepository(
 	db *sql.DB,
 	logger jsonlog.Logger,
-) UserRepository {
-	return &userRepository{
+) *UserRepository {
+	return &UserRepository{
 		db:             db,
 		logger:         logger,
 		BaseRepository: repository.NewBaseRepository[Usuario](db, logger, "usuarios", "u"),
@@ -48,17 +48,17 @@ func parseUserConstraintError(err error) error {
 	return err
 }
 
-func (r *userRepository) FindByID(ctx context.Context, id uuid.UUID) (*Usuario, error) {
+func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*Usuario, error) {
 	return r.BaseRepository.FindById(ctx, id)
 }
 
-func (r *userRepository) FindByEmail(ctx context.Context, email string) (*Usuario, error) {
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*Usuario, error) {
 	return r.BaseRepository.FindOne(ctx, repository.WithQueryExtraWhere("u.email = :email", map[string]any{
 		"email": email,
 	}))
 }
 
-func (r *userRepository) Save(ctx context.Context, tx *sql.Tx, model *Usuario) error {
+func (r *UserRepository) Save(ctx context.Context, tx *sql.Tx, model *Usuario) error {
 	err := r.BaseRepository.Insert(ctx, tx, model)
 	if err != nil {
 		return parseUserConstraintError(err)
@@ -67,7 +67,7 @@ func (r *userRepository) Save(ctx context.Context, tx *sql.Tx, model *Usuario) e
 	return nil
 }
 
-func (r *userRepository) Update(ctx context.Context, tx *sql.Tx, model *Usuario) error {
+func (r *UserRepository) Update(ctx context.Context, tx *sql.Tx, model *Usuario) error {
 	err := r.BaseRepository.Update(ctx, tx, model)
 	if err != nil {
 		return parseUserConstraintError(err)
@@ -76,7 +76,7 @@ func (r *userRepository) Update(ctx context.Context, tx *sql.Tx, model *Usuario)
 	return nil
 }
 
-func (r *userRepository) DeleteById(ctx context.Context, tx *sql.Tx, id uuid.UUID) error {
+func (r *UserRepository) DeleteById(ctx context.Context, tx *sql.Tx, id uuid.UUID) error {
 	return r.BaseRepository.DeleteByQuery(
 		ctx,
 		tx,

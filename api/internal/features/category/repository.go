@@ -15,13 +15,13 @@ import (
 	"github.com/lib/pq"
 )
 
-type categoryRepository struct {
+type CategoryRepository struct {
 	db             *sql.DB
 	logger         jsonlog.Logger
 	baseRepository repository.BaseRepository[Category]
 }
 
-type CategoryRepository interface {
+type categoryRepository interface {
 	FindById(
 		ctx context.Context,
 		id uuid.UUID,
@@ -55,15 +55,15 @@ type CategoryRepository interface {
 func NewRepository(
 	db *sql.DB,
 	logger jsonlog.Logger,
-) CategoryRepository {
-	return &categoryRepository{
+) *CategoryRepository {
+	return &CategoryRepository{
 		db:             db,
 		logger:         logger,
 		baseRepository: repository.NewBaseRepository[Category](db, logger, "categories", "c"),
 	}
 }
 
-func (r *categoryRepository) parseConstraintError(err error) error {
+func (r *CategoryRepository) parseConstraintError(err error) error {
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Constraint {
 		case "categories_name_user_id_unique":
@@ -73,7 +73,7 @@ func (r *categoryRepository) parseConstraintError(err error) error {
 	return err
 }
 
-func (r *categoryRepository) FindById(
+func (r *CategoryRepository) FindById(
 	ctx context.Context,
 	id uuid.UUID,
 ) (*Category, error) {
@@ -98,7 +98,7 @@ func (r *categoryRepository) FindById(
 	)
 }
 
-func (r *categoryRepository) FindAll(
+func (r *CategoryRepository) FindAll(
 	ctx context.Context,
 	f filters.Filters,
 	search ...string,
@@ -126,7 +126,7 @@ func (r *categoryRepository) FindAll(
 	)
 }
 
-func (r *categoryRepository) Insert(
+func (r *CategoryRepository) Insert(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *Category,
@@ -148,7 +148,7 @@ func (r *categoryRepository) Insert(
 	return nil
 }
 
-func (r *categoryRepository) Update(
+func (r *CategoryRepository) Update(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *Category,
@@ -173,7 +173,7 @@ func (r *categoryRepository) Update(
 	return nil
 }
 
-func (r *categoryRepository) DeleteById(
+func (r *CategoryRepository) DeleteById(
 	ctx context.Context,
 	tx *sql.Tx,
 	id uuid.UUID,

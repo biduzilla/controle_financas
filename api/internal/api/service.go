@@ -10,10 +10,10 @@ import (
 )
 
 type services struct {
-	user.UserService
-	auth.AuthService
-	category.CategoryService
-	t.TransactionService
+	*user.UserService
+	*auth.AuthService
+	*category.CategoryService
+	*t.TransactionService
 }
 
 func NewServices(

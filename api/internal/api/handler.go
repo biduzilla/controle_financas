@@ -10,10 +10,10 @@ import (
 
 type handlers struct {
 	services *services
-	user.UserHandler
-	auth.AuthHandler
-	category.CategoyHandler
-	transaction.TransactionHandler
+	*user.UserHandler
+	*auth.AuthHandler
+	*category.CategoyHandler
+	*transaction.TransactionHandler
 }
 
 func NewHandlers(

@@ -4,15 +4,16 @@ import (
 	"controle_financas/internal/core/contexts"
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
+	"controle_financas/pkg/httputil"
 	"net/http"
 )
 
-type userHandler struct {
-	service    UserService
+type UserHandler struct {
+	service    userService
 	errHandler apiError.ErrorHandler
 }
 
-type UserHandler interface {
+type userHandler interface {
 	FindAuthUserData(w http.ResponseWriter, r *http.Request)
 	FindByID(w http.ResponseWriter, r *http.Request)
 	Save(w http.ResponseWriter, r *http.Request)
@@ -21,16 +22,16 @@ type UserHandler interface {
 }
 
 func NewHandler(
-	service UserService,
+	service userService,
 	errHandler apiError.ErrorHandler,
-) UserHandler {
-	return &userHandler{
+) *UserHandler {
+	return &UserHandler{
 		service:    service,
 		errHandler: errHandler,
 	}
 }
 
-func (h *userHandler) FindAuthUserData(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) FindAuthUserData(w http.ResponseWriter, r *http.Request) {
 	userAuth := contexts.GetUser(r.Context())
 	model, err := h.service.FindById(r.Context(), userAuth.GetID())
 	if err != nil {
@@ -47,7 +48,7 @@ func (h *userHandler) FindAuthUserData(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *userHandler) FindByID(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	id, ok := handler.ParseUUID(w, r, h.errHandler)
 	if !ok {
 		return
@@ -68,9 +69,9 @@ func (h *userHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *userHandler) Save(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Save(w http.ResponseWriter, r *http.Request) {
 	var dto UsuarioDTO
-	if err := handler.ReadJSON(w, r, &dto); err != nil {
+	if err := httputil.ReadJSON(w, r, &dto); err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
 	}
@@ -89,9 +90,9 @@ func (h *userHandler) Save(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(w, r, http.StatusCreated, model.ToDTO(), nil, h.errHandler)
 }
 
-func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var dto UsuarioDTO
-	if err := handler.ReadJSON(w, r, &dto); err != nil {
+	if err := httputil.ReadJSON(w, r, &dto); err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
 	}
@@ -110,7 +111,7 @@ func (h *userHandler) Update(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(w, r, http.StatusOK, model.ToDTO(), nil, h.errHandler)
 }
 
-func (h *userHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, ok := handler.ParseUUID(w, r, h.errHandler)
 	if !ok {
 		return

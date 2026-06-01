@@ -6,26 +6,26 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type categoryRouter struct {
-	handler CategoyHandler
+type CategoryRouter struct {
+	handler categoyHandler
 	m       middleware.Middleware
 }
 
-type CategoryRouter interface {
+type categoryRouter interface {
 	Routes(router chi.Router)
 }
 
 func NewRouter(
-	handler CategoyHandler,
+	handler categoyHandler,
 	m middleware.Middleware,
-) CategoryRouter {
-	return &categoryRouter{
+) *CategoryRouter {
+	return &CategoryRouter{
 		handler: handler,
 		m:       m,
 	}
 }
 
-func (r *categoryRouter) Routes(router chi.Router) {
+func (r *CategoryRouter) Routes(router chi.Router) {
 	router.Route("/category", func(router chi.Router) {
 		router.Group(func(router chi.Router) {
 			router.Use(r.m.RequireActivatedUser)

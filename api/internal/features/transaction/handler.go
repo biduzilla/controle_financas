@@ -7,17 +7,19 @@ import (
 
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
-	"controle_financas/utils"
+	"controle_financas/pkg/datetime"
+	"controle_financas/pkg/httpjson"
+	"controle_financas/pkg/httputil"
 
 	"github.com/google/uuid"
 )
 
-type transactionHandler struct {
-	service    TransactionService
+type TransactionHandler struct {
+	service    transactionService
 	errHandler apiError.ErrorHandler
 }
 
-type TransactionHandler interface {
+type transactionHandler interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	FindByID(w http.ResponseWriter, r *http.Request)
 	Save(w http.ResponseWriter, r *http.Request)
@@ -27,22 +29,22 @@ type TransactionHandler interface {
 }
 
 func NewHandler(
-	service TransactionService,
+	service transactionService,
 	errHandler apiError.ErrorHandler,
-) TransactionHandler {
-	return &transactionHandler{
+) *TransactionHandler {
+	return &TransactionHandler{
 		service:    service,
 		errHandler: errHandler,
 	}
 }
 
-func (h *transactionHandler) BalanceSummary(w http.ResponseWriter, r *http.Request) {
-	monthStr := handler.ReadStringParam(r, "month", "")
-	yearStr := handler.ReadStringParam(r, "year", "")
+func (h *TransactionHandler) BalanceSummary(w http.ResponseWriter, r *http.Request) {
+	monthStr := httputil.ReadStringParam(r, "month", "")
+	yearStr := httputil.ReadStringParam(r, "year", "")
 
 	var start, end *time.Time
 	if monthStr != "" && yearStr != "" {
-		s, e, err := utils.ParseMonthYear(monthStr, yearStr)
+		s, e, err := datetime.ParseMonthYear(monthStr, yearStr)
 		if err != nil {
 			h.errHandler.BadRequestResponse(w, r, err)
 			return
@@ -60,11 +62,11 @@ func (h *transactionHandler) BalanceSummary(w http.ResponseWriter, r *http.Reque
 	handler.Respond(w, r, http.StatusOK, summary, nil, h.errHandler)
 }
 
-func (h *transactionHandler) FindAll(w http.ResponseWriter, r *http.Request) {
-	categoryIDStr := handler.ReadStringParam(r, "category_id", "")
-	startDateStr := handler.ReadStringParam(r, "start_date", "")
-	endDateStr := handler.ReadStringParam(r, "end_date", "")
-	search := handler.ReadStringParam(r, "search", "")
+func (h *TransactionHandler) FindAll(w http.ResponseWriter, r *http.Request) {
+	categoryIDStr := httputil.ReadStringParam(r, "category_id", "")
+	startDateStr := httputil.ReadStringParam(r, "start_date", "")
+	endDateStr := httputil.ReadStringParam(r, "end_date", "")
+	search := httputil.ReadStringParam(r, "search", "")
 
 	f, err := handler.GetFilters(r, []string{"created_at", "-created_at", "amount", "-amount"})
 	if err != nil {
@@ -119,7 +121,7 @@ func (h *transactionHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(
 		w, r,
 		http.StatusOK,
-		utils.Envelope{
+		httpjson.Envelope{
 			"content":  dtos,
 			"metadata": metadata,
 		},
@@ -128,7 +130,7 @@ func (h *transactionHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *transactionHandler) FindByID(w http.ResponseWriter, r *http.Request) {
+func (h *TransactionHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	id, ok := handler.ParseUUID(w, r, h.errHandler)
 	if !ok {
 		return
@@ -143,9 +145,9 @@ func (h *transactionHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(w, r, http.StatusOK, model.ToDTO(), nil, h.errHandler)
 }
 
-func (h *transactionHandler) Save(w http.ResponseWriter, r *http.Request) {
+func (h *TransactionHandler) Save(w http.ResponseWriter, r *http.Request) {
 	var dto TransactionDTO
-	if err := handler.ReadJSON(w, r, &dto); err != nil {
+	if err := httputil.ReadJSON(w, r, &dto); err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
 	}
@@ -164,9 +166,9 @@ func (h *transactionHandler) Save(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(w, r, http.StatusCreated, model.ToDTO(), nil, h.errHandler)
 }
 
-func (h *transactionHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *TransactionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	var dto TransactionDTO
-	if err := handler.ReadJSON(w, r, &dto); err != nil {
+	if err := httputil.ReadJSON(w, r, &dto); err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
 	}
@@ -185,7 +187,7 @@ func (h *transactionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	handler.Respond(w, r, http.StatusOK, model.ToDTO(), nil, h.errHandler)
 }
 
-func (h *transactionHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
+func (h *TransactionHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 	id, ok := handler.ParseUUID(w, r, h.errHandler)
 	if !ok {
 		return

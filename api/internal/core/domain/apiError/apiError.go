@@ -3,7 +3,7 @@ package apiError
 import (
 	"context"
 	"controle_financas/internal/core/jsonlog"
-	"controle_financas/utils"
+	"controle_financas/pkg/httpjson"
 	"errors"
 	"fmt"
 	"net/http"
@@ -229,7 +229,7 @@ func (e *errorHandler) EditConflictResponse(w http.ResponseWriter, r *http.Reque
 
 func (e *errorHandler) errorHandler(w http.ResponseWriter, r *http.Request, status int, message any) {
 	// env := utils.Envelope{"error": message}
-	err := utils.WriteJSON(w, status, map[string]any{
+	err := httpjson.WriteJSON(w, status, map[string]any{
 		"path":      r.URL.Path,
 		"status":    http.StatusText(status),
 		"message":   message,

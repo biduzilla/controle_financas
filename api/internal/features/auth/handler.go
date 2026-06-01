@@ -3,37 +3,38 @@ package auth
 import (
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
-	"controle_financas/utils"
+	"controle_financas/pkg/httpjson"
+	"controle_financas/pkg/httputil"
 	"net/http"
 )
 
-type authHandler struct {
-	service    AuthService
+type AuthHandler struct {
+	service    authService
 	errHandler apiError.ErrorHandler
 }
 
-type AuthHandler interface {
+type authHandler interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	RefreshToken(w http.ResponseWriter, r *http.Request)
 }
 
 func NewHandler(
-	service AuthService,
+	service authService,
 	errHandler apiError.ErrorHandler,
-) *authHandler {
-	return &authHandler{
+) *AuthHandler {
+	return &AuthHandler{
 		service:    service,
 		errHandler: errHandler,
 	}
 }
 
-func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
-	err := handler.ReadJSON(w, r, &input)
+	err := httputil.ReadJSON(w, r, &input)
 	if err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
@@ -50,7 +51,7 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 		w,
 		r,
 		http.StatusOK,
-		utils.Envelope{
+		httpjson.Envelope{
 			"access_token":  accessToken,
 			"refresh_token": refreshToken,
 			"expiration":    expiration,
@@ -60,12 +61,12 @@ func (h *authHandler) Login(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *authHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		RefreshToken string `json:"refresh_token"`
 	}
 
-	err := handler.ReadJSON(w, r, &input)
+	err := httputil.ReadJSON(w, r, &input)
 	if err != nil {
 		h.errHandler.BadRequestResponse(w, r, err)
 		return
@@ -82,7 +83,7 @@ func (h *authHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		w,
 		r,
 		http.StatusOK,
-		utils.Envelope{
+		httpjson.Envelope{
 			"access_token": accessToken,
 		},
 		nil,

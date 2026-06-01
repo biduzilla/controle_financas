@@ -12,12 +12,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type transactionService struct {
-	repo TransactionRepository
+type TransactionService struct {
+	repo transactionRepository
 	tx   transaction.Manager
 }
 
-type TransactionService interface {
+type transactionService interface {
 	BalanceSummary(
 		ctx context.Context,
 		startDate, endDate *time.Time,
@@ -55,16 +55,16 @@ type TransactionService interface {
 }
 
 func NewService(
-	repo TransactionRepository,
+	repo transactionRepository,
 	tx transaction.Manager,
-) TransactionService {
-	return &transactionService{
+) *TransactionService {
+	return &TransactionService{
 		repo: repo,
 		tx:   tx,
 	}
 }
 
-func (s *transactionService) BalanceSummary(
+func (s *TransactionService) BalanceSummary(
 	ctx context.Context,
 	startDate, endDate *time.Time,
 ) (BalanceSummary, error) {
@@ -79,14 +79,14 @@ func (s *transactionService) BalanceSummary(
 	return s.repo.GetBalanceSummary(ctx, startDate, endAdjusted)
 }
 
-func (s *transactionService) FindById(
+func (s *TransactionService) FindById(
 	ctx context.Context,
 	id uuid.UUID,
 ) (*Transaction, error) {
 	return s.repo.FindById(ctx, id)
 }
 
-func (s *transactionService) FindAll(
+func (s *TransactionService) FindAll(
 	ctx context.Context,
 	categoryId *uuid.UUID,
 	startDate, endDate *time.Time,
@@ -96,7 +96,7 @@ func (s *transactionService) FindAll(
 	return s.repo.FindAll(ctx, categoryId, startDate, endDate, f, search...)
 }
 
-func (s *transactionService) Insert(
+func (s *TransactionService) Insert(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *Transaction,
@@ -116,7 +116,7 @@ func (s *transactionService) Insert(
 	return s.tx.RunInTx(ctx, saveFn)
 }
 
-func (s *transactionService) Update(
+func (s *TransactionService) Update(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *Transaction,
@@ -136,7 +136,7 @@ func (s *transactionService) Update(
 	return s.tx.RunInTx(ctx, updateFn)
 }
 
-func (s *transactionService) DeleteById(
+func (s *TransactionService) DeleteById(
 	ctx context.Context,
 	tx *sql.Tx,
 	id uuid.UUID,

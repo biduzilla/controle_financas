@@ -4,7 +4,7 @@ import (
 	"context"
 	"controle_financas/internal/core/contexts"
 	"controle_financas/internal/core/domain/apiError"
-	"controle_financas/utils"
+	"controle_financas/pkg/sqlformat"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -161,7 +161,7 @@ func (r *baseRepository[T]) Insert(
 
 	filteredValues := filterValuesForQuery(values, query)
 	queryStr, args := NamedQuery(query, filteredValues)
-	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
 	var createdAt time.Time
 	var version int
@@ -227,7 +227,7 @@ func (r *baseRepository[T]) Update(
 	query := BuildUpdateQuery(r.table, params, pk.columnName, extraWhere, []string{"version"}, cfg)
 	filteredValues := filterValuesForQuery(values, query)
 	queryStr, args := NamedQuery(query, filteredValues)
-	r.logger.PrintInfo(utils.MinifySQL(queryStr), nil)
+	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
 	var newVersion int
 	err = tx.QueryRowContext(ctx, queryStr, args...).Scan(&newVersion)
