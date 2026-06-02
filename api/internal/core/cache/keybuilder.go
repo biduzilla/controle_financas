@@ -5,19 +5,29 @@ import (
 	"strings"
 )
 
-type KeyBuilder struct {
+type keyBuilder struct {
 	prefix string
 }
 
-func NewKeyBuilder(prefix string) *KeyBuilder {
-	return &KeyBuilder{prefix: prefix}
+type KeyBuilder interface {
+	BuildItemKey(id string) string
+	BuildListKey(params ...any) string
+	GetPrefix() string
 }
 
-func (kb *KeyBuilder) Item(id string) string {
+func (kb *keyBuilder) GetPrefix() string {
+	return kb.prefix
+}
+
+func NewKeyBuilder(prefix string) *keyBuilder {
+	return &keyBuilder{prefix: prefix}
+}
+
+func (kb *keyBuilder) BuildItemKey(id string) string {
 	return fmt.Sprintf("%s:%s", kb.prefix, id)
 }
 
-func (kb *KeyBuilder) List(params ...any) string {
+func (kb *keyBuilder) BuildListKey(params ...any) string {
 	var base strings.Builder
 	fmt.Fprintf(&base, "%s:list", kb.prefix)
 	for _, p := range params {

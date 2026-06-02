@@ -10,6 +10,7 @@ import (
 
 type RedisCache struct {
 	client *redis.Client
+	ttl    time.Duration
 }
 
 func NewRedisCache(addr, password string, db int) (*RedisCache, error) {
@@ -33,12 +34,17 @@ func (r *RedisCache) Get(ctx context.Context, key string, dest any) error {
 	return json.Unmarshal(data, dest)
 }
 
-func (r *RedisCache) Set(ctx context.Context, key string, value any, ttl time.Duration) error {
+func (r *RedisCache) Set(ctx context.Context, key string, value any, ttl *time.Duration) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
 	}
-	return r.client.Set(ctx, key, data, ttl).Err()
+	t := ttl
+
+	if t == nil {
+		t = &r.ttl
+	}
+	return r.client.Set(ctx, key, data, *t).Err()
 }
 
 func (r *RedisCache) Delete(ctx context.Context, keys ...string) error {
@@ -46,4 +52,34 @@ func (r *RedisCache) Delete(ctx context.Context, keys ...string) error {
 		return nil
 	}
 	return r.client.Del(ctx, keys...).Err()
+}
+
+func (r *RedisCache) DeleteByPrefix(ctx context.Context, prefix string) error {
+	var cursor uint64
+	pattern := prefix + "*"
+
+	for {
+		keys, nextCursor, err := r.client.Scan(
+			ctx,
+			cursor,
+			pattern,
+			100,
+		).Result()
+
+		if err != nil {
+			return err
+		}
+
+		if len(keys) > 0 {
+			if err := r.client.Del(ctx, keys...).Err(); err != nil {
+				return err
+			}
+		}
+
+		cursor = nextCursor
+		if cursor == 0 {
+			break
+		}
+	}
+	return nil
 }

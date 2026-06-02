@@ -31,6 +31,11 @@ type Config struct {
 		PrivateKeyPath string
 		PublicKeyPath  string
 	}
+	Cache struct {
+		Addr     string
+		Password string
+		Db       int
+	}
 }
 
 type Conf struct {

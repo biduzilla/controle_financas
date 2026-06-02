@@ -1,6 +1,7 @@
 package api
 
 import (
+	"controle_financas/internal/core/cache"
 	"controle_financas/internal/core/config"
 	"controle_financas/internal/core/transaction"
 	"controle_financas/internal/features/auth"
@@ -21,10 +22,15 @@ func NewServices(
 	tx transaction.Manager,
 	config config.Config,
 ) (*services, error) {
-	userService := user.NewService(r.UserRepository, tx)
+	cacheClient, err := cache.NewRedisCache(config.Cache.Addr, config.Cache.Password, config.Cache.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	userService := user.NewService(r.UserRepository, tx, cacheClient, cache.NewKeyBuilder("user"))
 	authService, err := auth.NewService(userService, config)
-	categoryService := category.NewService(r.CategoryRepository, tx)
-	transactionService := t.NewService(r.TransactionRepository, tx)
+	categoryService := category.NewService(r.CategoryRepository, tx, cacheClient, cache.NewKeyBuilder("category"))
+	transactionService := t.NewService(r.TransactionRepository, tx, cacheClient, cache.NewKeyBuilder("transaction"))
 
 	if err != nil {
 		return nil, err
