@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"controle_financas/internal/core/contexts"
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/filters"
 	"database/sql"
@@ -19,12 +18,6 @@ type FieldParam struct {
 	Column string
 	Value  any
 	Tag    string
-}
-
-type Executor interface {
-	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
-	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 }
 
 func CollectParams(model any, mode string, ignoreFields ...string) ([]FieldParam, error) {
@@ -555,12 +548,4 @@ func BuildFilterQuery(alias string, search ...string) string {
 	return fmt.Sprintf(`((:search is null or :search = '')
 	or to_tsvector('simple', %s) @@ plainto_tsquery('simple', :search))`,
 		strings.Join(fields, " || ' ' || "))
-}
-
-func (r *baseRepository[T]) getExecutor(ctx context.Context) Executor {
-	tx := contexts.GetTx(ctx)
-	if tx != nil {
-		return tx
-	}
-	return r.db
 }

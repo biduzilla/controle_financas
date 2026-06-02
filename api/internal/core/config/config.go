@@ -43,6 +43,7 @@ type Conf struct {
 	DB          ConfDB
 	RateLimiter ConfRL
 	Security    ConfSecurity
+	Cache       ConfCache
 }
 
 type ConfServer struct {
@@ -67,6 +68,12 @@ type ConfRL struct {
 type ConfSecurity struct {
 	PrivateKeyPath string `env:"PRIVATE_KEY_PATH,required"`
 	PublicKeyPath  string `env:"PUBLIC_KEY_PATH,required"`
+}
+
+type ConfCache struct {
+	Addr     string `env:"CACHE_ADDR,required"`
+	Password string `env:"CACHE_PASSWORD,required"`
+	Db       int    `env:"CACHE_DB,required"`
 }
 
 func New() *Conf {

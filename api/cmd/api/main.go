@@ -21,6 +21,9 @@ func main() {
 	cfg.Limiter.Enabled = c.RateLimiter.Enabled
 	cfg.Security.PrivateKeyPath = c.Security.PrivateKeyPath
 	cfg.Security.PublicKeyPath = c.Security.PublicKeyPath
+	cfg.Cache.Addr = c.Cache.Addr
+	cfg.Cache.Password = c.Cache.Password
+	cfg.Cache.Db = c.Cache.Db
 
 	app := api.NewApp(cfg)
 	err := app.Server()
