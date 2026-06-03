@@ -147,7 +147,7 @@ func (r *baseRepository[T]) FindById(
 	query, args := NamedQuery(query, cfg.extraParams)
 	r.logger.PrintInfo(sqlformat.MinifySQL(query), nil)
 
-	return GetByQuery[T](ctx, r.db, query, args)
+	return getByQuery[T](ctx, r.db, query, args)
 }
 
 func (r *baseRepository[T]) Find(
@@ -168,7 +168,7 @@ func (r *baseRepository[T]) Find(
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
 	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
-	return ListQuery(ctx, r.db, queryStr, args, r.factory)
+	return listQuery(ctx, r.db, queryStr, args, r.factory)
 }
 
 func (r *baseRepository[T]) FindOne(
@@ -190,7 +190,7 @@ func (r *baseRepository[T]) FindOne(
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
 	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
-	return GetByQuery[T](ctx, r.db, queryStr, args)
+	return getByQuery[T](ctx, r.db, queryStr, args)
 }
 
 func (r *baseRepository[T]) Count(ctx context.Context, opts ...QueryOption) (int64, error) {
@@ -242,7 +242,7 @@ func (r *baseRepository[T]) FindWithFilters(
 	queryStr, args := NamedQuery(finalQuery, cfg.extraParams)
 	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)
 
-	return PaginatedQuery(ctx, r.db, queryStr, args, f, r.factory)
+	return paginatedQuery(ctx, r.db, queryStr, args, f, r.factory)
 }
 
 func (r *baseRepository[T]) DeleteByQuery(
@@ -287,7 +287,7 @@ func (r *baseRepository[T]) DeleteByQuery(
 
 func (r *baseRepository[T]) selectColumns(cfg *queryConfig) string {
 	var model T
-	return SelectColumns(cfg, model, r.alias)
+	return selectColumns(cfg, model, r.alias)
 }
 
 func (r *baseRepository[T]) factory() *T {

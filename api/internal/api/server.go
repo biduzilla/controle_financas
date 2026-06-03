@@ -5,6 +5,7 @@ import (
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/middleware"
 	"controle_financas/internal/core/transaction"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -13,7 +14,13 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 )
+
+type router interface {
+	RegisterRoutes(db *sql.DB) *chi.Mux
+}
 
 func (app *application) Server() error {
 	defer app.db.Close()
@@ -22,7 +29,7 @@ func (app *application) Server() error {
 
 	repo := NewRepositories(app.db, app.Logger)
 	tx := transaction.NewManager(app.db)
-	services, err := NewServices(repo, tx, app.config)
+	services, err := NewServices(repo, tx, app.config, app.Logger)
 	if err != nil {
 		return err
 	}
@@ -36,7 +43,8 @@ func (app *application) Server() error {
 		app.Logger,
 		shutdown,
 	)
-	router := NewRouter(
+
+	var router router = NewRouter(
 		handlers,
 		errHandler,
 		middleware,
@@ -44,7 +52,7 @@ func (app *application) Server() error {
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.config.Server.Port),
-		Handler:      router.RegisterRoutes(),
+		Handler:      router.RegisterRoutes(app.db),
 		IdleTimeout:  time.Minute,
 		ErrorLog:     log.New(app.Logger, "", 0),
 		ReadTimeout:  10 * time.Second,

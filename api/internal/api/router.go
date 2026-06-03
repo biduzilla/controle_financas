@@ -7,13 +7,14 @@ import (
 	"controle_financas/internal/features/category"
 	"controle_financas/internal/features/transaction"
 	"controle_financas/internal/features/user"
+	"database/sql"
 	"expvar"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-type router struct {
+type Router struct {
 	errHandler  apiError.ErrorHandler
 	m           middleware.Middleware
 	user        *user.UserRouter
@@ -22,16 +23,12 @@ type router struct {
 	transaction *transaction.TransactionRouter
 }
 
-type Router interface {
-	RegisterRoutes() *chi.Mux
-}
-
 func NewRouter(
 	handlers *handlers,
 	errHandler apiError.ErrorHandler,
 	m middleware.Middleware,
-) Router {
-	return &router{
+) *Router {
+	return &Router{
 		m:           m,
 		errHandler:  errHandler,
 		user:        user.NewRouter(handlers.UserHandler, m),
@@ -41,7 +38,7 @@ func NewRouter(
 	}
 }
 
-func (router *router) RegisterRoutes() *chi.Mux {
+func (router *Router) RegisterRoutes(db *sql.DB) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(router.m.RecoverPanic)
 	r.Use(router.m.TimeoutMiddleWare)
@@ -61,6 +58,9 @@ func (router *router) RegisterRoutes() *chi.Mux {
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Mount("/debug/vars", expvar.Handler())
+		r.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
+			middleware.MetricsHandler(db).ServeHTTP(w, r)
+		})
 		router.user.Routes(r)
 		router.auth.Routes(r)
 		router.category.Routes(r)

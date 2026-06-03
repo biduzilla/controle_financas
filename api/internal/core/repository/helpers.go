@@ -20,7 +20,7 @@ type FieldParam struct {
 	Tag    string
 }
 
-func CollectParams(model any, mode string, ignoreFields ...string) ([]FieldParam, error) {
+func collectParams(model any, mode string, ignoreFields ...string) ([]FieldParam, error) {
 	v := reflect.ValueOf(model)
 
 	if v.Kind() == reflect.Pointer {
@@ -180,7 +180,7 @@ func shouldSkipField(repoTag, mode string) bool {
 	return false
 }
 
-func BuildInsertQuery(
+func buildInsertQuery(
 	table string,
 	params []FieldParam,
 	returning []string,
@@ -221,7 +221,7 @@ func BuildInsertQuery(
 	return query
 }
 
-func BuildUpdateQuery(
+func buildUpdateQuery(
 	table string,
 	params []FieldParam,
 	pkColumn string,
@@ -266,7 +266,7 @@ func BuildUpdateQuery(
 	return query
 }
 
-func ParamsToMap(params []FieldParam) map[string]any {
+func paramsToMap(params []FieldParam) map[string]any {
 	m := make(map[string]any, len(params))
 	for _, p := range params {
 		m[p.Column] = p.Value
@@ -289,7 +289,7 @@ func NamedQuery(query string, params map[string]any) (string, []any) {
 	return query, args
 }
 
-func ListQuery[T any](
+func listQuery[T any](
 	ctx context.Context,
 	db *sql.DB,
 	query string,
@@ -327,7 +327,7 @@ func ListQuery[T any](
 	return models, nil
 }
 
-func PaginatedQuery[T any](
+func paginatedQuery[T any](
 	ctx context.Context,
 	db *sql.DB,
 	query string,
@@ -374,7 +374,7 @@ func PaginatedQuery[T any](
 	return models, metaData, nil
 }
 
-func GetByQuery[T any](
+func getByQuery[T any](
 	ctx context.Context,
 	db *sql.DB,
 	query string,
@@ -382,7 +382,7 @@ func GetByQuery[T any](
 ) (*T, error) {
 	var model T
 	row := db.QueryRowContext(ctx, query, args...)
-	err := ScanStruct(row, &model)
+	err := scanStruct(row, &model)
 
 	if err != nil {
 		switch {
@@ -397,7 +397,7 @@ func GetByQuery[T any](
 
 type FactoryFunc[T any] func() *T
 
-func ScanStruct(row *sql.Row, dest any) error {
+func scanStruct(row *sql.Row, dest any) error {
 	fields, err := collectFields(dest)
 	if err != nil {
 		return err
@@ -414,7 +414,7 @@ func ScanStruct(row *sql.Row, dest any) error {
 	return nil
 }
 
-func SelectColumns(cfg *queryConfig, model any, tableAlias string) string {
+func selectColumns(cfg *queryConfig, model any, tableAlias string) string {
 	cols := []string{}
 	collectColumns(reflect.TypeOf(model), tableAlias, &cols)
 

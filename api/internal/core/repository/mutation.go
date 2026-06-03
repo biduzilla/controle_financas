@@ -132,12 +132,12 @@ func (r *baseRepository[T]) Insert(
 		opt(cfg)
 	}
 
-	params, err := CollectParams(model, "insert", cfg.ignoreFields...)
+	params, err := collectParams(model, "insert", cfg.ignoreFields...)
 	if err != nil {
 		return fmt.Errorf("collect params: %w", err)
 	}
 
-	values := ParamsToMap(params)
+	values := paramsToMap(params)
 
 	maps.Copy(values, cfg.extraParams)
 
@@ -157,7 +157,7 @@ func (r *baseRepository[T]) Insert(
 	returningFields = append(returningFields, pk.columnName)
 	returningFields = append(returningFields, "created_at", "version")
 
-	query := BuildInsertQuery(r.table, params, returningFields, cfg)
+	query := buildInsertQuery(r.table, params, returningFields, cfg)
 
 	filteredValues := filterValuesForQuery(values, query)
 	queryStr, args := NamedQuery(query, filteredValues)
@@ -194,12 +194,12 @@ func (r *baseRepository[T]) Update(
 		opt(cfg)
 	}
 
-	params, err := CollectParams(model, "update", cfg.ignoreFields...)
+	params, err := collectParams(model, "update", cfg.ignoreFields...)
 	if err != nil {
 		return fmt.Errorf("collect params: %w", err)
 	}
 
-	values := ParamsToMap(params)
+	values := paramsToMap(params)
 
 	pk, err := r.getPkInfo(model)
 	if err != nil {
@@ -224,7 +224,7 @@ func (r *baseRepository[T]) Update(
 	}
 	values["version"] = r.getFieldValue(model, "Version")
 
-	query := BuildUpdateQuery(r.table, params, pk.columnName, extraWhere, []string{"version"}, cfg)
+	query := buildUpdateQuery(r.table, params, pk.columnName, extraWhere, []string{"version"}, cfg)
 	filteredValues := filterValuesForQuery(values, query)
 	queryStr, args := NamedQuery(query, filteredValues)
 	r.logger.PrintInfo(sqlformat.MinifySQL(queryStr), nil)

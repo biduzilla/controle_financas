@@ -109,11 +109,25 @@ func (m *middleware) Metrics(next http.Handler) http.Handler {
 		mw := newMetricsResponseWriter(w)
 		next.ServeHTTP(mw, r)
 
-		totalResponsesSent.Add(1)
-		totalResponsesSentByStatus.Add(strconv.Itoa(mw.statusCode), 1)
+		duration := time.Since(start).Seconds()
+		status := strconv.Itoa(mw.statusCode)
 
-		duration := time.Since(start).Microseconds()
-		totalProcessingTimeMicroseconds.Add(duration)
+		httpRequestsTotal.WithLabelValues(
+			r.Method,
+			r.URL.Path,
+			status,
+		).Inc()
+
+		httpRequestDuration.WithLabelValues(
+			r.Method,
+			r.URL.Path,
+		).Observe(duration)
+
+		// totalResponsesSent.Add(1)
+		// totalResponsesSentByStatus.Add(strconv.Itoa(mw.statusCode), 1)
+
+		// duration := time.Since(start).Microseconds()
+		// totalProcessingTimeMicroseconds.Add(duration)
 	})
 }
 

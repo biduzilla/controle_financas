@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s # De quanto em quanto tempo o Prometheus vai bater na sua API
+
+scrape_configs:
+  - job_name: 'controle_financas_api'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['controle_financas_api:4000'] # Nome do container da API e porta
