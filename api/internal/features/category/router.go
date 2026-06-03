@@ -1,14 +1,18 @@
 package category
 
 import (
-	"controle_financas/internal/core/middleware"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
+type authMiddleware interface {
+	RequireActivatedUser(next http.Handler) http.Handler
+}
+
 type CategoryRouter struct {
 	handler categoyHandler
-	m       middleware.Middleware
+	m       authMiddleware
 }
 
 type categoryRouter interface {
@@ -17,7 +21,7 @@ type categoryRouter interface {
 
 func NewRouter(
 	handler categoyHandler,
-	m middleware.Middleware,
+	m authMiddleware,
 ) *CategoryRouter {
 	return &CategoryRouter{
 		handler: handler,

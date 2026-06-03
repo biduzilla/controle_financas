@@ -1,7 +1,6 @@
 package api
 
 import (
-	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/middleware"
 	"controle_financas/internal/features/auth"
 	"controle_financas/internal/features/category"
@@ -14,9 +13,27 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type mw interface {
+	Metrics(next http.Handler) http.Handler
+	EnableCORS(next http.Handler) http.Handler
+	RequireAuthenticatedUser(next http.Handler) http.Handler
+	RequireActivatedUser(next http.Handler) http.Handler
+	Authenticate(next http.Handler) http.Handler
+	RateLimit(next http.Handler) http.Handler
+	RecoverPanic(next http.Handler) http.Handler
+	Logging(next http.Handler) http.Handler
+	TimeoutMiddleWare(next http.Handler) http.Handler
+	RequestID(next http.Handler) http.Handler
+}
+
+type errorHandler interface {
+	NotFoundResponse(w http.ResponseWriter, r *http.Request)
+	MethodNotAllowedResponse(w http.ResponseWriter, r *http.Request)
+}
+
 type Router struct {
-	errHandler  apiError.ErrorHandler
-	m           middleware.Middleware
+	errHandler  errorHandler
+	m           mw
 	user        *user.UserRouter
 	auth        *auth.AuthRouter
 	category    *category.CategoryRouter
@@ -25,14 +42,14 @@ type Router struct {
 
 func NewRouter(
 	handlers *handlers,
-	errHandler apiError.ErrorHandler,
-	m middleware.Middleware,
+	errHandler errorHandler,
+	m mw,
 ) *Router {
 	return &Router{
 		m:           m,
 		errHandler:  errHandler,
 		user:        user.NewRouter(handlers.UserHandler, m),
-		auth:        auth.NewRouter(handlers.AuthHandler, m),
+		auth:        auth.NewRouter(handlers.AuthHandler),
 		category:    category.NewRouter(handlers.CategoyHandler, m),
 		transaction: transaction.NewRouter(handlers.TransactionHandler, m),
 	}
@@ -43,6 +60,7 @@ func (router *Router) RegisterRoutes(db *sql.DB) *chi.Mux {
 
 	r.Use(router.m.RecoverPanic)
 	r.Use(router.m.TimeoutMiddleWare)
+	r.Use(router.m.RequestID)
 	r.Use(router.m.Metrics)
 	r.Use(router.m.Logging)
 
@@ -66,7 +84,6 @@ func (router *Router) RegisterRoutes(db *sql.DB) *chi.Mux {
 		r.Use(router.m.RateLimit)
 		r.Use(router.m.EnableCORS)
 		r.Use(router.m.Authenticate)
-		r.Use(router.m.Logging)
 
 		router.user.Routes(r)
 		router.auth.Routes(r)

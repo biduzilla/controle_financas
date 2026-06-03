@@ -17,9 +17,9 @@ import (
 )
 
 type TransactionRepository struct {
-	db             *sql.DB
-	logger         jsonlog.Logger
-	baseRepository repository.BaseRepository[Transaction]
+	db     *sql.DB
+	logger jsonlog.Logger
+	br     *repository.BaseRepository[Transaction]
 }
 
 type transactionRepository interface {
@@ -67,7 +67,7 @@ func NewRepository(
 	return &TransactionRepository{
 		db:     db,
 		logger: logger,
-		baseRepository: repository.NewBaseRepository[Transaction](
+		br: repository.NewBaseRepository[Transaction](
 			db,
 			logger,
 			"transactions",
@@ -156,7 +156,7 @@ func (r TransactionRepository) FindAll(
 	}
 
 	joinType := "INNER"
-	return r.baseRepository.FindWithFilters(
+	return r.br.FindWithFilters(
 		ctx,
 		f,
 		repository.WithQueryExtraWhere(query, params),
@@ -184,7 +184,7 @@ func (r TransactionRepository) FindById(
 	userAuth := contexts.GetUser(ctx)
 	joinType := "INNER"
 
-	return r.baseRepository.FindById(
+	return r.br.FindById(
 		ctx,
 		id,
 		repository.WithQueryExtraWhere(`
@@ -219,7 +219,7 @@ func (r TransactionRepository) Insert(
 		return apiError.ErrRecordNotFound
 	}
 
-	return r.baseRepository.Insert(
+	return r.br.Insert(
 		ctx,
 		tx,
 		model,
@@ -240,7 +240,7 @@ func (r TransactionRepository) Update(
 		return apiError.ErrRecordNotFound
 	}
 
-	return r.baseRepository.Update(
+	return r.br.Update(
 		ctx,
 		tx,
 		model,
@@ -261,7 +261,7 @@ func (r TransactionRepository) DeleteById(
 ) error {
 	userAuth := contexts.GetUser(ctx)
 
-	return r.baseRepository.DeleteByQuery(
+	return r.br.DeleteByQuery(
 		ctx,
 		tx,
 		repository.WithQueryExtraWhere("id = :id and user_id = :userId",

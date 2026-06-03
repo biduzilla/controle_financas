@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type errorHandler struct {
+type ErrorHandler struct {
 	logger jsonlog.Logger
 }
 
@@ -33,30 +33,10 @@ func (e *ValidationError) Error() string {
 	return "validation failed"
 }
 
-func NewErrorHandler(logger jsonlog.Logger) *errorHandler {
-	return &errorHandler{
+func NewErrorHandler(logger jsonlog.Logger) *ErrorHandler {
+	return &ErrorHandler{
 		logger: logger,
 	}
-}
-
-type ErrorHandler interface {
-	NotPermittedResponse(w http.ResponseWriter, r *http.Request)
-	AuthenticationRequiredResponse(w http.ResponseWriter, r *http.Request)
-	InactiveAccountResponse(w http.ResponseWriter, r *http.Request)
-	InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request)
-	InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request)
-	InvalidRoleResponse(w http.ResponseWriter, r *http.Request)
-	RateLimitExceededResponse(w http.ResponseWriter, r *http.Request)
-	ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error)
-	NotFoundResponse(w http.ResponseWriter, r *http.Request)
-	MethodNotAllowedResponse(w http.ResponseWriter, r *http.Request)
-	BadRequestResponse(w http.ResponseWriter, r *http.Request, err error)
-	FailedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string)
-	EditConflictResponse(w http.ResponseWriter, r *http.Request)
-	HandlerError(w http.ResponseWriter, r *http.Request, err error)
-	ExpiredTokenResponse(w http.ResponseWriter, r *http.Request)
-	MalFormedTokenResponse(w http.ResponseWriter, r *http.Request)
-	RequestTimeoutResponse(w http.ResponseWriter, r *http.Request)
 }
 
 var (
@@ -76,7 +56,7 @@ var (
 	ErrUnsupportedTypeScanModel = errors.New("unsupported slice type for db scan")
 )
 
-func (e *errorHandler) HandlerError(w http.ResponseWriter, r *http.Request, err error) {
+func (e *ErrorHandler) HandlerError(w http.ResponseWriter, r *http.Request, err error) {
 	var valErr *ValidationError
 	var apiError *ApiError
 	switch {
@@ -134,12 +114,12 @@ func NewApiError(message string, code int) *ApiError {
 	}
 }
 
-func (e *errorHandler) NotPermittedResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) NotPermittedResponse(w http.ResponseWriter, r *http.Request) {
 	message := "your user account doesn't have the necessary permissions to access this resource"
 	e.errorHandler(w, r, http.StatusForbidden, message)
 }
 
-func (e *errorHandler) RequestTimeoutResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) RequestTimeoutResponse(w http.ResponseWriter, r *http.Request) {
 	message := "request timeout, please try again"
 	e.logger.PrintInfo("request timeout", map[string]string{
 		"method":     r.Method,
@@ -150,81 +130,81 @@ func (e *errorHandler) RequestTimeoutResponse(w http.ResponseWriter, r *http.Req
 	e.errorHandler(w, r, http.StatusGatewayTimeout, message)
 }
 
-func (e *errorHandler) MalFormedTokenResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) MalFormedTokenResponse(w http.ResponseWriter, r *http.Request) {
 	message := "malformed token"
 	e.errorHandler(w, r, http.StatusUnauthorized, message)
 }
 
-func (e *errorHandler) TokenErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (e *ErrorHandler) TokenErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	e.errorHandler(w, r, http.StatusUnauthorized, err.Error())
 }
 
-func (e *errorHandler) ExpiredTokenResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) ExpiredTokenResponse(w http.ResponseWriter, r *http.Request) {
 	message := "expired token"
 	e.errorHandler(w, r, http.StatusUnauthorized, message)
 }
 
-func (e *errorHandler) AuthenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) AuthenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
 	message := "you must be authenticated to access this resource"
 	e.errorHandler(w, r, http.StatusUnauthorized, message)
 }
-func (e *errorHandler) InactiveAccountResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) InactiveAccountResponse(w http.ResponseWriter, r *http.Request) {
 	message := "your user account must be activated to access this resource"
 	e.errorHandler(w, r, http.StatusForbidden, message)
 }
 
-func (e *errorHandler) InvalidRoleResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) InvalidRoleResponse(w http.ResponseWriter, r *http.Request) {
 	message := "Your user account does not have access to this feature."
 	e.errorHandler(w, r, http.StatusForbidden, message)
 }
 
-func (e *errorHandler) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("WWW-Authenticate", "Bearer")
 	message := "invalid or missing authentication token"
 	e.errorHandler(w, r, http.StatusUnauthorized, message)
 }
 
-func (e *errorHandler) InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	message := "invalid authentication credentials"
 	e.errorHandler(w, r, http.StatusUnauthorized, message)
 }
 
-func (e *errorHandler) RateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) RateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
 	message := "rate limit exceed"
 	e.errorHandler(w, r, http.StatusTooManyRequests, message)
 }
 
-func (e *errorHandler) ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (e *ErrorHandler) ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	e.logError(r, err)
 	message := "the server encountered a problem and could not process your request"
 	e.errorHandler(w, r, http.StatusInternalServerError, message)
 }
 
-func (e *errorHandler) NotFoundResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) NotFoundResponse(w http.ResponseWriter, r *http.Request) {
 	message := "the requested resource could not be found"
 	e.errorHandler(w, r, http.StatusNotFound, message)
 }
 
-func (e *errorHandler) MethodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) MethodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
 	e.errorHandler(w, r, http.StatusMethodNotAllowed, message)
 }
 
-func (e *errorHandler) BadRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (e *ErrorHandler) BadRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	e.errorHandler(w, r, http.StatusBadRequest, err.Error())
 }
 
-func (e *errorHandler) FailedValidationResponse(w http.ResponseWriter, r *http.Request, fieldErrors map[string]string) {
+func (e *ErrorHandler) FailedValidationResponse(w http.ResponseWriter, r *http.Request, fieldErrors map[string]string) {
 	message := formatFieldErrors(fieldErrors)
 	e.errorHandler(w, r, http.StatusUnprocessableEntity, message)
 }
 
-func (e *errorHandler) EditConflictResponse(w http.ResponseWriter, r *http.Request) {
+func (e *ErrorHandler) EditConflictResponse(w http.ResponseWriter, r *http.Request) {
 	message := "unable to update the record due to an edit conflict, please try again"
 	e.errorHandler(w, r, http.StatusConflict, message)
 }
 
-func (e *errorHandler) errorHandler(w http.ResponseWriter, r *http.Request, status int, message any) {
+func (e *ErrorHandler) errorHandler(w http.ResponseWriter, r *http.Request, status int, message any) {
 	// env := utils.Envelope{"error": message}
 	err := httpjson.WriteJSON(w, status, map[string]any{
 		"path":      r.URL.Path,
@@ -238,7 +218,7 @@ func (e *errorHandler) errorHandler(w http.ResponseWriter, r *http.Request, stat
 	}
 }
 
-func (e *errorHandler) logError(r *http.Request, err error) {
+func (e *ErrorHandler) logError(r *http.Request, err error) {
 	e.logger.PrintError(err, map[string]string{
 		"request_method": r.Method,
 		"request_url":    r.URL.String(),

@@ -14,7 +14,7 @@ import (
 type UserRepository struct {
 	db     *sql.DB
 	logger jsonlog.Logger
-	repository.BaseRepository[Usuario]
+	br     *repository.BaseRepository[Usuario]
 }
 
 type userRepository interface {
@@ -30,9 +30,9 @@ func NewRepository(
 	logger jsonlog.Logger,
 ) *UserRepository {
 	return &UserRepository{
-		db:             db,
-		logger:         logger,
-		BaseRepository: repository.NewBaseRepository[Usuario](db, logger, "usuarios", "u"),
+		db:     db,
+		logger: logger,
+		br:     repository.NewBaseRepository[Usuario](db, logger, "usuarios", "u"),
 	}
 }
 
@@ -49,17 +49,17 @@ func parseUserConstraintError(err error) error {
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*Usuario, error) {
-	return r.BaseRepository.FindById(ctx, id)
+	return r.br.FindById(ctx, id)
 }
 
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*Usuario, error) {
-	return r.BaseRepository.FindOne(ctx, repository.WithQueryExtraWhere("u.email = :email", map[string]any{
+	return r.br.FindOne(ctx, repository.WithQueryExtraWhere("u.email = :email", map[string]any{
 		"email": email,
 	}))
 }
 
 func (r *UserRepository) Save(ctx context.Context, tx *sql.Tx, model *Usuario) error {
-	err := r.BaseRepository.Insert(ctx, tx, model)
+	err := r.br.Insert(ctx, tx, model)
 	if err != nil {
 		return parseUserConstraintError(err)
 	}
@@ -68,7 +68,7 @@ func (r *UserRepository) Save(ctx context.Context, tx *sql.Tx, model *Usuario) e
 }
 
 func (r *UserRepository) Update(ctx context.Context, tx *sql.Tx, model *Usuario) error {
-	err := r.BaseRepository.Update(ctx, tx, model)
+	err := r.br.Update(ctx, tx, model)
 	if err != nil {
 		return parseUserConstraintError(err)
 	}
@@ -77,7 +77,7 @@ func (r *UserRepository) Update(ctx context.Context, tx *sql.Tx, model *Usuario)
 }
 
 func (r *UserRepository) DeleteById(ctx context.Context, tx *sql.Tx, id uuid.UUID) error {
-	return r.BaseRepository.DeleteByQuery(
+	return r.br.DeleteByQuery(
 		ctx,
 		tx,
 		repository.WithQueryExtraWhere("u.id = :id", map[string]any{

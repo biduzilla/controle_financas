@@ -16,9 +16,9 @@ import (
 )
 
 type CategoryRepository struct {
-	db             *sql.DB
-	logger         jsonlog.Logger
-	baseRepository repository.BaseRepository[Category]
+	db     *sql.DB
+	logger jsonlog.Logger
+	br     *repository.BaseRepository[Category]
 }
 
 type categoryRepository interface {
@@ -57,9 +57,9 @@ func NewRepository(
 	logger jsonlog.Logger,
 ) *CategoryRepository {
 	return &CategoryRepository{
-		db:             db,
-		logger:         logger,
-		baseRepository: repository.NewBaseRepository[Category](db, logger, "categories", "c"),
+		db:     db,
+		logger: logger,
+		br:     repository.NewBaseRepository[Category](db, logger, "categories", "c"),
 	}
 }
 
@@ -79,7 +79,7 @@ func (r *CategoryRepository) FindById(
 ) (*Category, error) {
 	userLogado := contexts.GetUser(ctx)
 
-	return r.baseRepository.FindOne(
+	return r.br.FindOne(
 		ctx,
 		repository.WithQueryExtraWhere(`
 		c.id = :id
@@ -109,7 +109,7 @@ func (r *CategoryRepository) FindAll(
 		and user_id = :userId
 	`, repository.BuildFilterQuery("c", search...))
 
-	return r.baseRepository.FindWithFilters(
+	return r.br.FindWithFilters(
 		ctx,
 		f,
 		repository.WithQueryExtraWhere(query,
@@ -132,7 +132,7 @@ func (r *CategoryRepository) Insert(
 	model *Category,
 ) error {
 	userLogado := contexts.GetUser(ctx)
-	err := r.baseRepository.Insert(
+	err := r.br.Insert(
 		ctx,
 		tx,
 		model,
@@ -154,7 +154,7 @@ func (r *CategoryRepository) Update(
 	model *Category,
 ) error {
 	userAuth := contexts.GetUser(ctx)
-	err := r.baseRepository.Update(
+	err := r.br.Update(
 		ctx,
 		tx,
 		model,
@@ -180,7 +180,7 @@ func (r *CategoryRepository) DeleteById(
 ) error {
 	userAuth := contexts.GetUser(ctx)
 
-	return r.baseRepository.DeleteByQuery(
+	return r.br.DeleteByQuery(
 		ctx,
 		tx,
 		repository.WithQueryExtraWhere("id = :id and user_id = :userId",

@@ -2,15 +2,20 @@ package user
 
 import (
 	"controle_financas/internal/core/contexts"
-	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
 	"controle_financas/pkg/httputil"
 	"net/http"
 )
 
+type errorHandler interface {
+	HandlerError(w http.ResponseWriter, r *http.Request, err error)
+	ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error)
+	BadRequestResponse(w http.ResponseWriter, r *http.Request, err error)
+}
+
 type UserHandler struct {
 	service    userService
-	errHandler apiError.ErrorHandler
+	errHandler errorHandler
 }
 
 type userHandler interface {
@@ -23,7 +28,7 @@ type userHandler interface {
 
 func NewHandler(
 	service userService,
-	errHandler apiError.ErrorHandler,
+	errHandler errorHandler,
 ) *UserHandler {
 	return &UserHandler{
 		service:    service,

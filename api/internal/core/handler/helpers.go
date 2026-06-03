@@ -14,10 +14,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type errorHandler interface {
+	ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error)
+	BadRequestResponse(w http.ResponseWriter, r *http.Request, err error)
+}
+
 func ParseIntID(
 	w http.ResponseWriter,
 	r *http.Request,
-	errRsp apiError.ErrorHandler,
+	errRsp errorHandler,
 ) (int64, bool) {
 	id, err := readIntPathVariable(r, "id")
 	if err != nil {
@@ -47,7 +52,7 @@ func GetFilters(r *http.Request, sortSafelist []string) (filters.Filters, error)
 func ParseStringField(
 	w http.ResponseWriter,
 	r *http.Request,
-	errRsp apiError.ErrorHandler,
+	errRsp errorHandler,
 	field string,
 ) (string, bool) {
 	value, err := readStringPathVariable(r, field)
@@ -61,7 +66,7 @@ func ParseStringField(
 func ParseUUID(
 	w http.ResponseWriter,
 	r *http.Request,
-	errRsp apiError.ErrorHandler,
+	errRsp errorHandler,
 ) (uuid.UUID, bool) {
 
 	id, err := readStringPathVariable(r, "id")
@@ -85,7 +90,7 @@ func Respond(
 	status int,
 	data any,
 	headers http.Header,
-	errRsp apiError.ErrorHandler,
+	errRsp errorHandler,
 ) {
 	err := httpjson.WriteJSON(w, status, data, headers)
 	if err != nil {

@@ -1,14 +1,18 @@
 package transaction
 
 import (
-	"controle_financas/internal/core/middleware"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
+type authMiddleware interface {
+	RequireActivatedUser(next http.Handler) http.Handler
+}
+
 type TransactionRouter struct {
 	handler transactionHandler
-	m       middleware.Middleware
+	m       authMiddleware
 }
 
 type transactionRouter interface {
@@ -17,7 +21,7 @@ type transactionRouter interface {
 
 func NewRouter(
 	handler transactionHandler,
-	m middleware.Middleware,
+	m authMiddleware,
 ) *TransactionRouter {
 	return &TransactionRouter{
 		handler: handler,

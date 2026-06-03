@@ -1,14 +1,11 @@
 package auth
 
 import (
-	"controle_financas/internal/core/middleware"
-
 	"github.com/go-chi/chi/v5"
 )
 
 type AuthRouter struct {
 	handler authHandler
-	m       middleware.Middleware
 }
 
 type authRouter interface {
@@ -17,11 +14,9 @@ type authRouter interface {
 
 func NewRouter(
 	handler authHandler,
-	m middleware.Middleware,
 ) *AuthRouter {
 	return &AuthRouter{
 		handler: handler,
-		m:       m,
 	}
 }
 

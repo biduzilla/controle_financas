@@ -1,14 +1,18 @@
 package user
 
 import (
-	"controle_financas/internal/core/middleware"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
+type authMiddleware interface {
+	RequireActivatedUser(next http.Handler) http.Handler
+}
+
 type UserRouter struct {
 	handler userHandler
-	m       middleware.Middleware
+	m       authMiddleware
 }
 
 type userRouter interface {
@@ -17,7 +21,7 @@ type userRouter interface {
 
 func NewRouter(
 	handler userHandler,
-	m middleware.Middleware,
+	m authMiddleware,
 ) *UserRouter {
 	return &UserRouter{
 		handler: handler,

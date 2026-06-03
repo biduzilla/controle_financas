@@ -1,16 +1,21 @@
 package category
 
 import (
-	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
 	"controle_financas/pkg/httpjson"
 	"controle_financas/pkg/httputil"
 	"net/http"
 )
 
+type errorHandler interface {
+	HandlerError(w http.ResponseWriter, r *http.Request, err error)
+	ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error)
+	BadRequestResponse(w http.ResponseWriter, r *http.Request, err error)
+}
+
 type CategoyHandler struct {
 	service    categoryService
-	errHandler apiError.ErrorHandler
+	errHandler errorHandler
 }
 
 type categoyHandler interface {
@@ -23,7 +28,7 @@ type categoyHandler interface {
 
 func NewHandler(
 	service categoryService,
-	errHandler apiError.ErrorHandler,
+	errHandler errorHandler,
 ) *CategoyHandler {
 	return &CategoyHandler{
 		service:    service,

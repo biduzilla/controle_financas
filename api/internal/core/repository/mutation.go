@@ -61,7 +61,7 @@ type pkInfo struct {
 	value      any
 }
 
-func (r *baseRepository[T]) getPkInfo(model *T) (pkInfo, error) {
+func (r *BaseRepository[T]) getPkInfo(model *T) (pkInfo, error) {
 	v := reflect.ValueOf(model).Elem()
 	t := v.Type()
 
@@ -91,7 +91,7 @@ func (r *baseRepository[T]) getPkInfo(model *T) (pkInfo, error) {
 	return pkInfo{columnName: "id", isAuto: true, fieldName: "ID"}, nil
 }
 
-func (r *baseRepository[T]) getPkInfoFromStruct(t reflect.Type) (pkInfo, error) {
+func (r *BaseRepository[T]) getPkInfoFromStruct(t reflect.Type) (pkInfo, error) {
 	for field := range t.Fields() {
 		repoTag := field.Tag.Get("repo")
 		dbTag := field.Tag.Get("db")
@@ -121,7 +121,7 @@ func filterValuesForQuery(values map[string]any, query string) map[string]any {
 	return filtered
 }
 
-func (r *baseRepository[T]) Insert(
+func (r *BaseRepository[T]) Insert(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *T,
@@ -183,7 +183,7 @@ func (r *baseRepository[T]) Insert(
 	return nil
 }
 
-func (r *baseRepository[T]) Update(
+func (r *BaseRepository[T]) Update(
 	ctx context.Context,
 	tx *sql.Tx,
 	model *T,

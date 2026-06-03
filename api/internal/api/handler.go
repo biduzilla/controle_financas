@@ -18,7 +18,7 @@ type handlers struct {
 
 func NewHandlers(
 	services *services,
-	errHandler apiError.ErrorHandler,
+	errHandler *apiError.ErrorHandler,
 ) *handlers {
 	return &handlers{
 		services:           services,

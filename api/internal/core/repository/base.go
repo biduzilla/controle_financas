@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-type BaseRepository[T any] interface {
+type baseRepository[T any] interface {
 	FindById(ctx context.Context, id any, opts ...QueryOption) (*T, error)
 	Find(ctx context.Context, opts ...QueryOption) ([]*T, error)
 	FindOne(ctx context.Context, opts ...QueryOption) (*T, error)
@@ -30,7 +30,7 @@ type BaseRepository[T any] interface {
 	Update(ctx context.Context, tx *sql.Tx, model *T, opts ...MutationOption) error
 }
 
-type baseRepository[T any] struct {
+type BaseRepository[T any] struct {
 	db     *sql.DB
 	logger jsonlog.Logger
 	table  string
@@ -42,8 +42,8 @@ func NewBaseRepository[T any](
 	logger jsonlog.Logger,
 	tableName string,
 	alias string,
-) *baseRepository[T] {
-	return &baseRepository[T]{
+) *BaseRepository[T] {
+	return &BaseRepository[T]{
 		db:     db,
 		logger: logger,
 		table:  tableName,
@@ -102,7 +102,7 @@ func newQueryConfig(opts ...QueryOption) *queryConfig {
 	return cfg
 }
 
-func (r *baseRepository[T]) Exists(ctx context.Context, opts ...QueryOption) (bool, error) {
+func (r *BaseRepository[T]) Exists(ctx context.Context, opts ...QueryOption) (bool, error) {
 	cfg := newQueryConfig(opts...)
 
 	if strings.TrimSpace(cfg.extraWhere) == "" {
@@ -125,7 +125,7 @@ func (r *baseRepository[T]) Exists(ctx context.Context, opts ...QueryOption) (bo
 	return exists, err
 }
 
-func (r *baseRepository[T]) FindById(
+func (r *BaseRepository[T]) FindById(
 	ctx context.Context,
 	id any,
 	opts ...QueryOption,
@@ -150,7 +150,7 @@ func (r *baseRepository[T]) FindById(
 	return getByQuery[T](ctx, r.db, query, args)
 }
 
-func (r *baseRepository[T]) Find(
+func (r *BaseRepository[T]) Find(
 	ctx context.Context,
 	opts ...QueryOption,
 ) ([]*T, error) {
@@ -171,7 +171,7 @@ func (r *baseRepository[T]) Find(
 	return listQuery(ctx, r.db, queryStr, args, r.factory)
 }
 
-func (r *baseRepository[T]) FindOne(
+func (r *BaseRepository[T]) FindOne(
 	ctx context.Context,
 	opts ...QueryOption,
 ) (*T, error) {
@@ -193,7 +193,7 @@ func (r *baseRepository[T]) FindOne(
 	return getByQuery[T](ctx, r.db, queryStr, args)
 }
 
-func (r *baseRepository[T]) Count(ctx context.Context, opts ...QueryOption) (int64, error) {
+func (r *BaseRepository[T]) Count(ctx context.Context, opts ...QueryOption) (int64, error) {
 	cfg := newQueryConfig(opts...)
 
 	finalQuery := fmt.Sprintf(`
@@ -210,7 +210,7 @@ func (r *baseRepository[T]) Count(ctx context.Context, opts ...QueryOption) (int
 	return count, err
 }
 
-func (r *baseRepository[T]) FindWithFilters(
+func (r *BaseRepository[T]) FindWithFilters(
 	ctx context.Context,
 	f filters.Filters,
 	opts ...QueryOption,
@@ -245,7 +245,7 @@ func (r *baseRepository[T]) FindWithFilters(
 	return paginatedQuery(ctx, r.db, queryStr, args, f, r.factory)
 }
 
-func (r *baseRepository[T]) DeleteByQuery(
+func (r *BaseRepository[T]) DeleteByQuery(
 	ctx context.Context,
 	tx *sql.Tx,
 	opts ...QueryOption,
@@ -285,17 +285,17 @@ func (r *baseRepository[T]) DeleteByQuery(
 	return nil
 }
 
-func (r *baseRepository[T]) selectColumns(cfg *queryConfig) string {
+func (r *BaseRepository[T]) selectColumns(cfg *queryConfig) string {
 	var model T
 	return selectColumns(cfg, model, r.alias)
 }
 
-func (r *baseRepository[T]) factory() *T {
+func (r *BaseRepository[T]) factory() *T {
 	var model T
 	return &model
 }
 
-func (r *baseRepository[T]) setFieldValue(
+func (r *BaseRepository[T]) setFieldValue(
 	model *T,
 	fieldName string,
 	value any,
@@ -307,7 +307,7 @@ func (r *baseRepository[T]) setFieldValue(
 	}
 }
 
-func (r *baseRepository[T]) getFieldValue(model *T, fieldName string) any {
+func (r *BaseRepository[T]) getFieldValue(model *T, fieldName string) any {
 	v := reflect.ValueOf(model).Elem()
 	field := v.FieldByName(fieldName)
 	if field.IsValid() {
@@ -316,7 +316,7 @@ func (r *baseRepository[T]) getFieldValue(model *T, fieldName string) any {
 	return nil
 }
 
-func (r *baseRepository[T]) buildJoinClauses(cfg *queryConfig) string {
+func (r *BaseRepository[T]) buildJoinClauses(cfg *queryConfig) string {
 	if len(cfg.joins) == 0 {
 		return ""
 	}

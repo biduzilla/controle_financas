@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/handler"
 	"controle_financas/pkg/datetime"
 	"controle_financas/pkg/httpjson"
@@ -14,9 +13,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type errorHandler interface {
+	HandlerError(w http.ResponseWriter, r *http.Request, err error)
+	ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error)
+	BadRequestResponse(w http.ResponseWriter, r *http.Request, err error)
+}
+
 type TransactionHandler struct {
 	service    transactionService
-	errHandler apiError.ErrorHandler
+	errHandler errorHandler
 }
 
 type transactionHandler interface {
@@ -30,7 +35,7 @@ type transactionHandler interface {
 
 func NewHandler(
 	service transactionService,
-	errHandler apiError.ErrorHandler,
+	errHandler errorHandler,
 ) *TransactionHandler {
 	return &TransactionHandler{
 		service:    service,

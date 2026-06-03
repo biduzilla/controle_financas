@@ -4,7 +4,6 @@ import (
 	"context"
 	"controle_financas/internal/core/config"
 	"controle_financas/internal/core/contexts"
-	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/jsonlog"
 	"controle_financas/internal/core/security"
 	"expvar"
@@ -27,33 +26,32 @@ var (
 	totalResponsesSentByStatus      = expvar.NewMap("total_responses_sent_by_status")
 )
 
+type errorHandler interface {
+	AuthenticationRequiredResponse(w http.ResponseWriter, r *http.Request)
+	InactiveAccountResponse(w http.ResponseWriter, r *http.Request)
+	InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request)
+	InvalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request)
+	MalFormedTokenResponse(w http.ResponseWriter, r *http.Request)
+	ExpiredTokenResponse(w http.ResponseWriter, r *http.Request)
+	HandlerError(w http.ResponseWriter, r *http.Request, err error)
+	ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error)
+	RateLimitExceededResponse(w http.ResponseWriter, r *http.Request)
+}
+
 type JWTService interface {
 	ExtractAuthenticatedUser(tokenString string) (security.UserDetails, error)
 }
 
 type middleware struct {
-	errHandler apiError.ErrorHandler
+	errHandler errorHandler
 	jwtService JWTService
 	config     config.Config
 	logger     jsonlog.Logger
 	shutdown   <-chan struct{}
 }
 
-type Middleware interface {
-	Metrics(next http.Handler) http.Handler
-	EnableCORS(next http.Handler) http.Handler
-	RequireAuthenticatedUser(next http.Handler) http.Handler
-	RequireActivatedUser(next http.Handler) http.Handler
-	Authenticate(next http.Handler) http.Handler
-	RateLimit(next http.Handler) http.Handler
-	RecoverPanic(next http.Handler) http.Handler
-	Logging(next http.Handler) http.Handler
-	// RequirePermission(codes []interfaces.Role) func(http.Handler) http.Handler
-	TimeoutMiddleWare(next http.Handler) http.Handler
-}
-
 func New(
-	errHandler apiError.ErrorHandler,
+	errHandler errorHandler,
 	config config.Config,
 	jwtService JWTService,
 	logger jsonlog.Logger,
