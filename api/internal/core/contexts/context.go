@@ -11,6 +11,19 @@ type contextKey string
 
 const userContextKey = contextKey("user")
 const txContextKey = contextKey("tx")
+const requestIDKey = contextKey("request_id")
+
+func SetRequestID(r *http.Request, id string) *http.Request {
+	ctx := context.WithValue(r.Context(), requestIDKey, id)
+	return r.WithContext(ctx)
+}
+
+func GetRequestID(ctx context.Context) string {
+	if id, ok := ctx.Value(requestIDKey).(string); ok {
+		return id
+	}
+	return ""
+}
 
 func SetUser(r *http.Request, user security.UserDetails) *http.Request {
 	ctx := context.WithValue(r.Context(), userContextKey, user)

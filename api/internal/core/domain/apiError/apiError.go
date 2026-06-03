@@ -2,6 +2,7 @@ package apiError
 
 import (
 	"context"
+	"controle_financas/internal/core/contexts"
 	"controle_financas/internal/core/jsonlog"
 	"controle_financas/pkg/httpjson"
 	"errors"
@@ -135,20 +136,16 @@ func NewApiError(message string, code int) *ApiError {
 
 func (e *errorHandler) NotPermittedResponse(w http.ResponseWriter, r *http.Request) {
 	message := "your user account doesn't have the necessary permissions to access this resource"
-	e.logger.PrintInfo("request timeout", map[string]string{
-		"method": r.Method,
-		"path":   r.URL.Path,
-		"ip":     r.RemoteAddr,
-	})
 	e.errorHandler(w, r, http.StatusForbidden, message)
 }
 
 func (e *errorHandler) RequestTimeoutResponse(w http.ResponseWriter, r *http.Request) {
 	message := "request timeout, please try again"
 	e.logger.PrintInfo("request timeout", map[string]string{
-		"method": r.Method,
-		"path":   r.URL.Path,
-		"ip":     r.RemoteAddr,
+		"method":     r.Method,
+		"path":       r.URL.Path,
+		"ip":         r.RemoteAddr,
+		"request_id": contexts.GetRequestID(r.Context()),
 	})
 	e.errorHandler(w, r, http.StatusGatewayTimeout, message)
 }
@@ -245,6 +242,7 @@ func (e *errorHandler) logError(r *http.Request, err error) {
 	e.logger.PrintError(err, map[string]string{
 		"request_method": r.Method,
 		"request_url":    r.URL.String(),
+		"request_id":     contexts.GetRequestID(r.Context()),
 	})
 }
 

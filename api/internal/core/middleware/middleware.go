@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/time/rate"
 )
 
@@ -340,11 +341,12 @@ func (m *middleware) Logging(next http.Handler) http.Handler {
 		next.ServeHTTP(mw, r)
 
 		m.logger.PrintInfo("request processed", map[string]string{
-			"method":   r.Method,
-			"path":     r.URL.Path,
-			"remote":   r.RemoteAddr,
-			"status":   http.StatusText(mw.statusCode),
-			"duration": time.Since(start).String(),
+			"method":     r.Method,
+			"path":       r.URL.Path,
+			"remote":     r.RemoteAddr,
+			"status":     http.StatusText(mw.statusCode),
+			"duration":   time.Since(start).String(),
+			"request_id": contexts.GetRequestID(r.Context()),
 		})
 	})
 }
@@ -355,6 +357,18 @@ func (m *middleware) TimeoutMiddleWare(next http.Handler) http.Handler {
 		defer cancel()
 
 		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (m *middleware) RequestID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Header.Get("X-Request-Id")
+		if id == "" {
+			id = uuid.New().String()
+		}
+		w.Header().Set("X-Request-Id", id)
+		r = contexts.SetRequestID(r, id)
 		next.ServeHTTP(w, r)
 	})
 }
