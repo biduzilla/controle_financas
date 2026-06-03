@@ -21,12 +21,6 @@ var (
 	})
 )
 
-func init() {
-	prometheus.MustRegister(dbOpenConnections)
-	prometheus.MustRegister(dbInUseConnections)
-	prometheus.MustRegister(dbIdleConnections)
-}
-
 func UpdateDBMetrics(db *sql.DB) {
 	stats := db.Stats()
 	dbOpenConnections.Set(float64(stats.OpenConnections))
