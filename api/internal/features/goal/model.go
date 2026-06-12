@@ -5,6 +5,8 @@ import (
 	"controle_financas/internal/core/validator"
 	"controle_financas/internal/features/user"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type GoalStatus int
@@ -18,7 +20,7 @@ const (
 
 type Goal struct {
 	models.BaseModel
-	ID           int64
+	ID           uuid.UUID
 	Name         string
 	Description  string
 	Color        string
@@ -30,7 +32,7 @@ type Goal struct {
 	Installments *Installments
 }
 type GoalDTO struct {
-	ID           *int64           `json:"goal_id"`
+	ID           *uuid.UUID       `json:"goal_id"`
 	Name         *string          `json:"name"`
 	Description  *string          `json:"description"`
 	Color        *string          `json:"color"`

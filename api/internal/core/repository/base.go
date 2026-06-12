@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-type baseRepository[T any] interface {
+type Orm[T any] interface {
 	FindById(ctx context.Context, id any, opts ...QueryOption) (*T, error)
 	Find(ctx context.Context, opts ...QueryOption) ([]*T, error)
 	FindOne(ctx context.Context, opts ...QueryOption) (*T, error)
