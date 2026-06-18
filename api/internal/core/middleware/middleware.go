@@ -182,7 +182,7 @@ func (m *middleware) Authenticate(next http.Handler) http.Handler {
 		authorizationHeader := r.Header.Get("Authorization")
 
 		if authorizationHeader == "" {
-			r = contexts.SetUser(r, security.AnonymousUser)
+			r = r.WithContext(contexts.SetUser(r.Context(), security.AnonymousUser))
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -211,7 +211,7 @@ func (m *middleware) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		r = contexts.SetUser(r, user)
+		r = r.WithContext(contexts.SetUser(r.Context(), user))
 
 		next.ServeHTTP(w, r)
 	})
@@ -366,7 +366,7 @@ func (m *middleware) RequestID(next http.Handler) http.Handler {
 			id = uuid.New().String()
 		}
 		w.Header().Set("X-Request-Id", id)
-		r = contexts.SetRequestID(r, id)
+		r = r.WithContext(contexts.SetRequestID(r.Context(), id))
 		next.ServeHTTP(w, r)
 	})
 }

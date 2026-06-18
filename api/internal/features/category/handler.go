@@ -103,7 +103,7 @@ func (h *CategoyHandler) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Insert(r.Context(), model, nil); err != nil {
+	if err := h.service.Insert(r.Context(), model); err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
 	}
@@ -124,7 +124,7 @@ func (h *CategoyHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Update(r.Context(), model, nil); err != nil {
+	if err := h.service.Update(r.Context(), model); err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
 	}
@@ -138,7 +138,7 @@ func (h *CategoyHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.DeleteById(r.Context(), id, nil); err != nil {
+	if err := h.service.DeleteById(r.Context(), id); err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
 	}

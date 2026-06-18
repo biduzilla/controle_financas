@@ -6,7 +6,6 @@ import (
 	"controle_financas/internal/core/domain/apiError"
 	"controle_financas/internal/core/transaction"
 	"controle_financas/internal/core/validator"
-	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -21,9 +20,9 @@ type UserService struct {
 type userService interface {
 	FindById(ctx context.Context, id uuid.UUID) (*Usuario, error)
 	FindByEmail(ctx context.Context, email string) (*Usuario, error)
-	Save(ctx context.Context, model *Usuario, tx *sql.Tx) error
-	Update(ctx context.Context, model *Usuario, tx *sql.Tx) error
-	DeleteById(ctx context.Context, id uuid.UUID, tx *sql.Tx) error
+	Save(ctx context.Context, model *Usuario) error
+	Update(ctx context.Context, model *Usuario) error
+	DeleteById(ctx context.Context, id uuid.UUID) error
 }
 
 func NewService(
@@ -56,22 +55,15 @@ func (s *UserService) FindByEmail(ctx context.Context, email string) (*Usuario, 
 	})
 }
 
-func (s *UserService) Save(ctx context.Context, model *Usuario, tx *sql.Tx) error {
-	saveFn := func(tx *sql.Tx) error {
-		v := validator.New()
-		if model.Validate(v); !v.Valid() {
-			return apiError.NewValidationError(v.Errors)
-		}
-
-		return s.repo.Save(ctx, tx, model)
+func (s *UserService) Save(ctx context.Context, model *Usuario) error {
+	v := validator.New()
+	if model.Validate(v); !v.Valid() {
+		return apiError.NewValidationError(v.Errors)
 	}
 
-	var err error
-	if tx != nil {
-		err = saveFn(tx)
-	} else {
-		err = s.tx.RunInTx(ctx, saveFn)
-	}
+	err := s.tx.RunInTx(ctx, func(ctx context.Context) error {
+		return s.repo.Save(ctx, model)
+	})
 
 	if err != nil {
 		return err
@@ -84,22 +76,15 @@ func (s *UserService) Save(ctx context.Context, model *Usuario, tx *sql.Tx) erro
 	return nil
 }
 
-func (s *UserService) Update(ctx context.Context, model *Usuario, tx *sql.Tx) error {
-	updateFn := func(tx *sql.Tx) error {
-		v := validator.New()
-		if model.Validate(v); !v.Valid() {
-			return apiError.NewValidationError(v.Errors)
-		}
-
-		return s.repo.Update(ctx, tx, model)
+func (s *UserService) Update(ctx context.Context, model *Usuario) error {
+	v := validator.New()
+	if model.Validate(v); !v.Valid() {
+		return apiError.NewValidationError(v.Errors)
 	}
 
-	var err error
-	if tx != nil {
-		err = updateFn(tx)
-	} else {
-		err = s.tx.RunInTx(ctx, updateFn)
-	}
+	err := s.tx.RunInTx(ctx, func(ctx context.Context) error {
+		return s.repo.Update(ctx, model)
+	})
 
 	if err != nil {
 		return err
@@ -111,17 +96,10 @@ func (s *UserService) Update(ctx context.Context, model *Usuario, tx *sql.Tx) er
 	return nil
 }
 
-func (s *UserService) DeleteById(ctx context.Context, id uuid.UUID, tx *sql.Tx) error {
-	deleteFn := func(tx *sql.Tx) error {
-		return s.repo.DeleteById(ctx, tx, id)
-	}
-
-	var err error
-	if tx != nil {
-		err = deleteFn(tx)
-	} else {
-		err = s.tx.RunInTx(ctx, deleteFn)
-	}
+func (s *UserService) DeleteById(ctx context.Context, id uuid.UUID) error {
+	err := s.tx.RunInTx(ctx, func(ctx context.Context) error {
+		return s.repo.DeleteById(ctx, id)
+	})
 
 	if err != nil {
 		return err

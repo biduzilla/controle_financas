@@ -20,9 +20,9 @@ type UserRepository struct {
 type userRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*Usuario, error)
 	FindByEmail(ctx context.Context, email string) (*Usuario, error)
-	Save(ctx context.Context, tx *sql.Tx, model *Usuario) error
-	Update(ctx context.Context, tx *sql.Tx, model *Usuario) error
-	DeleteById(ctx context.Context, tx *sql.Tx, id uuid.UUID) error
+	Save(ctx context.Context, model *Usuario) error
+	Update(ctx context.Context, model *Usuario) error
+	DeleteById(ctx context.Context, id uuid.UUID) error
 }
 
 func NewRepository(
@@ -58,8 +58,8 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*Usuari
 	}))
 }
 
-func (r *UserRepository) Save(ctx context.Context, tx *sql.Tx, model *Usuario) error {
-	err := r.br.Insert(ctx, tx, model)
+func (r *UserRepository) Save(ctx context.Context, model *Usuario) error {
+	err := r.br.Insert(ctx, model)
 	if err != nil {
 		return parseUserConstraintError(err)
 	}
@@ -67,8 +67,8 @@ func (r *UserRepository) Save(ctx context.Context, tx *sql.Tx, model *Usuario) e
 	return nil
 }
 
-func (r *UserRepository) Update(ctx context.Context, tx *sql.Tx, model *Usuario) error {
-	err := r.br.Update(ctx, tx, model)
+func (r *UserRepository) Update(ctx context.Context, model *Usuario) error {
+	err := r.br.Update(ctx, model)
 	if err != nil {
 		return parseUserConstraintError(err)
 	}
@@ -76,10 +76,9 @@ func (r *UserRepository) Update(ctx context.Context, tx *sql.Tx, model *Usuario)
 	return nil
 }
 
-func (r *UserRepository) DeleteById(ctx context.Context, tx *sql.Tx, id uuid.UUID) error {
+func (r *UserRepository) DeleteById(ctx context.Context, id uuid.UUID) error {
 	return r.br.DeleteByQuery(
 		ctx,
-		tx,
 		repository.WithQueryExtraWhere("u.id = :id", map[string]any{
 			"id": id,
 		}))

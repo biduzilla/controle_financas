@@ -49,6 +49,8 @@ var (
 	ErrInvalidTokenClaims       = errors.New("token claims are invalid or malformed")
 	ErrInvalidTokenSignature    = errors.New("token signature invalid")
 	ErrCountPermissions         = errors.New("one or more permissions do not exist")
+	ErrRollbackFailed           = errors.New("transaction rollback failed")
+	ErrTransactionNotFound      = errors.New("transaction not found")
 	ErrInactiveAccount          = errors.New("your user account must be activated to access this resource")
 	ErrStartDateAfterEndDate    = errors.New("start date must be before end date")
 	ErrInvalidRole              = errors.New("invalid role")

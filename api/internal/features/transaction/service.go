@@ -7,7 +7,6 @@ import (
 	"controle_financas/internal/core/filters"
 	"controle_financas/internal/core/transaction"
 	"controle_financas/internal/core/validator"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,19 +39,16 @@ type transactionService interface {
 	) ([]*Transaction, filters.Metadata, error)
 	Insert(
 		ctx context.Context,
-		tx *sql.Tx,
 		model *Transaction,
 	) error
 
 	Update(
 		ctx context.Context,
-		tx *sql.Tx,
 		model *Transaction,
 	) error
 
 	DeleteById(
 		ctx context.Context,
-		tx *sql.Tx,
 		id uuid.UUID,
 	) error
 }
@@ -124,24 +120,16 @@ func (s *TransactionService) FindAll(
 
 func (s *TransactionService) Insert(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Transaction,
 ) error {
-	saveFn := func(tx *sql.Tx) error {
-		v := validator.New()
-		if model.ValidateTransaction(v); !v.Valid() {
-			return apiError.NewValidationError(v.Errors)
-		}
-
-		return s.repo.Insert(ctx, tx, model)
+	v := validator.New()
+	if model.ValidateTransaction(v); !v.Valid() {
+		return apiError.NewValidationError(v.Errors)
 	}
 
-	var err error
-	if tx != nil {
-		err = saveFn(tx)
-	} else {
-		err = s.tx.RunInTx(ctx, saveFn)
-	}
+	err := s.tx.RunInTx(ctx, func(ctx context.Context) error {
+		return s.repo.Insert(ctx, model)
+	})
 
 	if err != nil {
 		return err
@@ -156,24 +144,16 @@ func (s *TransactionService) Insert(
 
 func (s *TransactionService) Update(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Transaction,
 ) error {
-	updateFn := func(tx *sql.Tx) error {
-		v := validator.New()
-		if model.ValidateTransaction(v); !v.Valid() {
-			return apiError.NewValidationError(v.Errors)
-		}
-
-		return s.repo.Update(ctx, tx, model)
+	v := validator.New()
+	if model.ValidateTransaction(v); !v.Valid() {
+		return apiError.NewValidationError(v.Errors)
 	}
 
-	var err error
-	if tx != nil {
-		err = updateFn(tx)
-	} else {
-		err = s.tx.RunInTx(ctx, updateFn)
-	}
+	err := s.tx.RunInTx(ctx, func(ctx context.Context) error {
+		return s.repo.Update(ctx, model)
+	})
 
 	if err != nil {
 		return err
@@ -187,19 +167,11 @@ func (s *TransactionService) Update(
 
 func (s *TransactionService) DeleteById(
 	ctx context.Context,
-	tx *sql.Tx,
 	id uuid.UUID,
 ) error {
-	deleteFn := func(tx *sql.Tx) error {
-		return s.repo.DeleteById(ctx, tx, id)
-	}
-
-	var err error
-	if tx != nil {
-		err = deleteFn(tx)
-	} else {
-		err = s.tx.RunInTx(ctx, deleteFn)
-	}
+	err := s.tx.RunInTx(ctx, func(ctx context.Context) error {
+		return s.repo.DeleteById(ctx, id)
+	})
 
 	if err != nil {
 		return err

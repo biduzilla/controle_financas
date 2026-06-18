@@ -23,11 +23,11 @@ type Orm[T any] interface {
 		f filters.Filters,
 		opts ...QueryOption,
 	) ([]*T, filters.Metadata, error)
-	DeleteByQuery(ctx context.Context, tx *sql.Tx, opts ...QueryOption) error
+	DeleteByQuery(ctx context.Context, opts ...QueryOption) error
 	Count(ctx context.Context, opts ...QueryOption) (int64, error)
 	Exists(ctx context.Context, opts ...QueryOption) (bool, error)
-	Insert(ctx context.Context, tx *sql.Tx, model *T, opts ...MutationOption) error
-	Update(ctx context.Context, tx *sql.Tx, model *T, opts ...MutationOption) error
+	Insert(ctx context.Context, model *T, opts ...MutationOption) error
+	Update(ctx context.Context, model *T, opts ...MutationOption) error
 }
 
 type BaseRepository[T any] struct {
@@ -247,11 +247,14 @@ func (r *BaseRepository[T]) FindWithFilters(
 
 func (r *BaseRepository[T]) DeleteByQuery(
 	ctx context.Context,
-	tx *sql.Tx,
 	opts ...QueryOption,
 ) error {
 	cfg := newQueryConfig(opts...)
 	user := contexts.GetUser(ctx)
+	tx := contexts.GetTx(ctx)
+	if tx == nil {
+		panic("transaction required in context")
+	}
 
 	finalQuery := fmt.Sprintf(`
 	UPDATE %s set

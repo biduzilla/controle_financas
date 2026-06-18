@@ -123,13 +123,18 @@ func filterValuesForQuery(values map[string]any, query string) map[string]any {
 
 func (r *BaseRepository[T]) Insert(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *T,
 	opts ...MutationOption,
 ) error {
-	cfg := &mutationConfig{}
-	for _, opt := range opts {
-		opt(cfg)
+	// cfg := &mutationConfig{}
+	// for _, opt := range opts {
+	// 	opt(cfg)
+	// }
+
+	cfg := newMutationConfig(opts...)
+	tx := contexts.GetTx(ctx)
+	if tx == nil {
+		panic("transaction required in context")
 	}
 
 	params, err := collectParams(model, "insert", cfg.ignoreFields...)
@@ -185,13 +190,18 @@ func (r *BaseRepository[T]) Insert(
 
 func (r *BaseRepository[T]) Update(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *T,
 	opts ...MutationOption,
 ) error {
-	cfg := &mutationConfig{}
-	for _, opt := range opts {
-		opt(cfg)
+	// cfg := &mutationConfig{}
+	// for _, opt := range opts {
+	// 	opt(cfg)
+	// }
+
+	cfg := newMutationConfig(opts...)
+	tx := contexts.GetTx(ctx)
+	if tx == nil {
+		panic("transaction required in context")
 	}
 
 	params, err := collectParams(model, "update", cfg.ignoreFields...)
@@ -240,4 +250,12 @@ func (r *BaseRepository[T]) Update(
 
 	r.setFieldValue(model, "Version", newVersion)
 	return nil
+}
+
+func newMutationConfig(opts ...MutationOption) *mutationConfig {
+	cfg := &mutationConfig{}
+	for _, opt := range opts {
+		opt(cfg)
+	}
+	return cfg
 }

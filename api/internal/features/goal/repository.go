@@ -21,6 +21,33 @@ type Repository struct {
 	br     repository.Orm[Goal]
 }
 
+type goalRepository interface {
+	FindAllByUserId(
+		ctx context.Context,
+		name string,
+		f filters.Filters,
+	) ([]*Goal, filters.Metadata, error)
+
+	FindById(
+		ctx context.Context,
+		id uuid.UUID,
+	) (*Goal, error)
+
+	Insert(
+		ctx context.Context,
+		model *Goal,
+	) error
+
+	Update(
+		ctx context.Context,
+		model *Goal,
+	) error
+	DeleteById(
+		ctx context.Context,
+		id uuid.UUID,
+	) error
+}
+
 func (r *Repository) parseConstraintError(err error) error {
 	if pqErr, ok := err.(*pq.Error); ok {
 		switch pqErr.Constraint {
@@ -42,21 +69,10 @@ func NewRepository(
 	}
 }
 
-func (r *Repository) FindAllByUserId(
-	ctx context.Context,
-	name string,
-	f filters.Filters,
-) ([]*Goal, filters.Metadata, error) {
+func (r *Repository) baseQueryOption(ctx context.Context, query string) []repository.QueryOption {
 	userAuth := contexts.GetUser(ctx)
 
-	query := fmt.Sprintf(`
-		%s
-		and user_id = :userId
-	`, repository.BuildFilterQuery("c", name))
-
-	return r.br.FindWithFilters(
-		ctx,
-		f,
+	return []repository.QueryOption{
 		repository.WithQueryExtraWhere(query,
 			map[string]any{
 				"userId": userAuth.GetID(),
@@ -68,6 +84,24 @@ func (r *Repository) FindAllByUserId(
 			"c.user_id = u.id",
 			nil,
 		),
+	}
+}
+
+func (r *Repository) FindAllByUserId(
+	ctx context.Context,
+	name string,
+	f filters.Filters,
+) ([]*Goal, filters.Metadata, error) {
+
+	query := fmt.Sprintf(`
+		%s
+		and user_id = :userId
+	`, repository.BuildFilterQuery("c", name))
+
+	return r.br.FindWithFilters(
+		ctx,
+		f,
+		r.baseQueryOption(ctx, query)...,
 	)
 }
 
@@ -75,34 +109,21 @@ func (r *Repository) FindById(
 	ctx context.Context,
 	id uuid.UUID,
 ) (*Goal, error) {
-	userAuth := contexts.GetUser(ctx)
-
 	return r.br.FindById(
 		ctx,
 		id,
-		repository.WithJoin(
-			user.Usuario{},
-			"usuarios",
-			"u",
-			"c.user_id = u.id",
-			nil,
-		),
-		repository.WithQueryExtraWhere("user_id = :userId", map[string]any{
-			"userId": userAuth.GetID(),
-		}),
+		r.baseQueryOption(ctx, "user_id = :userId")...,
 	)
 }
 
 func (r *Repository) Insert(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Goal,
 ) error {
 	userAuth := contexts.GetUser(ctx)
 
 	err := r.br.Insert(
 		ctx,
-		tx,
 		model,
 		repository.WithExtraFields([]string{"user_id"}, map[string]any{
 			"user_id": userAuth.GetID(),
@@ -118,13 +139,11 @@ func (r *Repository) Insert(
 
 func (r *Repository) Update(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Goal,
 ) error {
 	userAuth := contexts.GetUser(ctx)
 	err := r.br.Update(
 		ctx,
-		tx,
 		model,
 		repository.WithExtraFields([]string{"user_id"}, map[string]any{
 			"user_id": model.User.ID,
@@ -143,14 +162,12 @@ func (r *Repository) Update(
 
 func (r *Repository) DeleteById(
 	ctx context.Context,
-	tx *sql.Tx,
 	id uuid.UUID,
 ) error {
 	userAuth := contexts.GetUser(ctx)
 
 	return r.br.DeleteByQuery(
 		ctx,
-		tx,
 		repository.WithQueryExtraWhere("id = :id and user_id = :userId",
 			map[string]any{
 				"id":     id,

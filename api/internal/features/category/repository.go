@@ -35,19 +35,16 @@ type categoryRepository interface {
 
 	Insert(
 		ctx context.Context,
-		tx *sql.Tx,
 		model *Category,
 	) error
 
 	Update(
 		ctx context.Context,
-		tx *sql.Tx,
 		model *Category,
 	) error
 
 	DeleteById(
 		ctx context.Context,
-		tx *sql.Tx,
 		id uuid.UUID,
 	) error
 }
@@ -128,13 +125,11 @@ func (r *CategoryRepository) FindAll(
 
 func (r *CategoryRepository) Insert(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Category,
 ) error {
 	userLogado := contexts.GetUser(ctx)
 	err := r.br.Insert(
 		ctx,
-		tx,
 		model,
 		repository.WithExtraFields([]string{"user_id"}, map[string]any{
 			"user_id": userLogado.GetID(),
@@ -150,13 +145,11 @@ func (r *CategoryRepository) Insert(
 
 func (r *CategoryRepository) Update(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Category,
 ) error {
 	userAuth := contexts.GetUser(ctx)
 	err := r.br.Update(
 		ctx,
-		tx,
 		model,
 		repository.WithExtraFields([]string{"user_id"}, map[string]any{
 			"user_id": model.User.ID,
@@ -175,14 +168,12 @@ func (r *CategoryRepository) Update(
 
 func (r *CategoryRepository) DeleteById(
 	ctx context.Context,
-	tx *sql.Tx,
 	id uuid.UUID,
 ) error {
 	userAuth := contexts.GetUser(ctx)
 
 	return r.br.DeleteByQuery(
 		ctx,
-		tx,
 		repository.WithQueryExtraWhere("id = :id and user_id = :userId",
 			map[string]any{
 				"id":     id,

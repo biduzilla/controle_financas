@@ -27,7 +27,7 @@ type Transaction struct {
 
 type TransactionDTO struct {
 	ID          *uuid.UUID            `json:"transaction_id"`
-	Version     *int                  `json:"version"`
+	Version     int                   `json:"version"`
 	User        *user.UsuarioDTO      `json:"user"`
 	Category    *category.CategoryDTO `json:"category"`
 	Description *string               `json:"description"`
@@ -40,7 +40,7 @@ func (t *Transaction) ToDTO() *TransactionDTO {
 
 	dto.ID = &t.ID
 	dto.CreatedAt = &t.CreatedAt
-	dto.Version = &t.Version
+	dto.Version = t.Version
 	dto.Description = &t.Description
 	dto.Amount = &t.Amount
 
@@ -61,9 +61,9 @@ func (t *TransactionDTO) ToModel() (*Transaction, error) {
 	if t.ID != nil {
 		transaction.ID = *t.ID
 	}
-	if t.Version != nil {
-		transaction.Version = *t.Version
-	}
+
+	transaction.Version = t.Version
+
 	if t.User != nil {
 		user, err := t.User.ToModel()
 		if err != nil {

@@ -163,7 +163,7 @@ func (h *TransactionHandler) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Insert(r.Context(), nil, model); err != nil {
+	if err := h.service.Insert(r.Context(), model); err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
 	}
@@ -184,7 +184,7 @@ func (h *TransactionHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Update(r.Context(), nil, model); err != nil {
+	if err := h.service.Update(r.Context(), model); err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
 	}
@@ -198,7 +198,7 @@ func (h *TransactionHandler) DeleteByID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.service.DeleteById(r.Context(), nil, id); err != nil {
+	if err := h.service.DeleteById(r.Context(), id); err != nil {
 		h.errHandler.HandlerError(w, r, err)
 		return
 	}

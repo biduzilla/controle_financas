@@ -2,29 +2,36 @@ package transaction
 
 import (
 	"context"
+	"controle_financas/internal/core/contexts"
 	"database/sql"
 	"errors"
 )
 
 type Manager interface {
-	RunInTx(ctx context.Context, fn func(tx *sql.Tx) error) error
+	RunInTx(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
 type manager struct {
 	db *sql.DB
 }
 
-func NewManager(db *sql.DB) Manager {
+func NewManager(db *sql.DB) *manager {
 	return &manager{db: db}
 }
 
-func (m *manager) RunInTx(ctx context.Context, fn func(tx *sql.Tx) error) error {
+func (m *manager) RunInTx(ctx context.Context, fn func(ctx context.Context) error) error {
+	if tx := contexts.GetTx(ctx); tx != nil {
+		return fn(ctx)
+	}
+
 	tx, err := m.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	fnErr := fn(tx)
+	ctxWithTx := contexts.SetTx(ctx, tx)
+
+	fnErr := fn(ctxWithTx)
 	if fnErr == nil {
 		if commitErr := tx.Commit(); commitErr != nil {
 			return commitErr

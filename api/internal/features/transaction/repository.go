@@ -43,19 +43,16 @@ type transactionRepository interface {
 
 	Insert(
 		ctx context.Context,
-		tx *sql.Tx,
 		model *Transaction,
 	) error
 
 	Update(
 		ctx context.Context,
-		tx *sql.Tx,
 		model *Transaction,
 	) error
 
 	DeleteById(
 		ctx context.Context,
-		tx *sql.Tx,
 		id uuid.UUID,
 	) error
 }
@@ -211,7 +208,6 @@ func (r TransactionRepository) FindById(
 
 func (r TransactionRepository) Insert(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Transaction,
 ) error {
 	userAuth := contexts.GetUser(ctx)
@@ -221,7 +217,6 @@ func (r TransactionRepository) Insert(
 
 	return r.br.Insert(
 		ctx,
-		tx,
 		model,
 		repository.WithExtraFields([]string{"user_id", "category_id"}, map[string]any{
 			"user_id":     userAuth.GetID(),
@@ -232,7 +227,6 @@ func (r TransactionRepository) Insert(
 
 func (r TransactionRepository) Update(
 	ctx context.Context,
-	tx *sql.Tx,
 	model *Transaction,
 ) error {
 	userAuth := contexts.GetUser(ctx)
@@ -242,7 +236,6 @@ func (r TransactionRepository) Update(
 
 	return r.br.Update(
 		ctx,
-		tx,
 		model,
 		repository.WithExtraFields([]string{"user_id", "category_id"}, map[string]any{
 			"user_id":     userAuth.GetID(),
@@ -256,14 +249,12 @@ func (r TransactionRepository) Update(
 
 func (r TransactionRepository) DeleteById(
 	ctx context.Context,
-	tx *sql.Tx,
 	id uuid.UUID,
 ) error {
 	userAuth := contexts.GetUser(ctx)
 
 	return r.br.DeleteByQuery(
 		ctx,
-		tx,
 		repository.WithQueryExtraWhere("id = :id and user_id = :userId",
 			map[string]any{
 				"id":     id,

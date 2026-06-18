@@ -4,7 +4,6 @@ import (
 	"context"
 	"controle_financas/internal/core/security"
 	"database/sql"
-	"net/http"
 )
 
 type contextKey string
@@ -13,9 +12,8 @@ const userContextKey = contextKey("user")
 const txContextKey = contextKey("tx")
 const requestIDKey = contextKey("request_id")
 
-func SetRequestID(r *http.Request, id string) *http.Request {
-	ctx := context.WithValue(r.Context(), requestIDKey, id)
-	return r.WithContext(ctx)
+func SetRequestID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, requestIDKey, id)
 }
 
 func GetRequestID(ctx context.Context) string {
@@ -25,9 +23,8 @@ func GetRequestID(ctx context.Context) string {
 	return ""
 }
 
-func SetUser(r *http.Request, user security.UserDetails) *http.Request {
-	ctx := context.WithValue(r.Context(), userContextKey, user)
-	return r.WithContext(ctx)
+func SetUser(ctx context.Context, user security.UserDetails) context.Context {
+	return context.WithValue(ctx, userContextKey, user)
 }
 
 func GetUser(ctx context.Context) security.UserDetails {
@@ -38,15 +35,11 @@ func GetUser(ctx context.Context) security.UserDetails {
 	return user
 }
 
-func SetTx(r *http.Request, tx *sql.Tx) *http.Request {
-	ctx := context.WithValue(r.Context(), txContextKey, tx)
-	return r.WithContext(ctx)
+func SetTx(ctx context.Context, tx *sql.Tx) context.Context {
+	return context.WithValue(ctx, txContextKey, tx)
 }
 
 func GetTx(ctx context.Context) *sql.Tx {
-	tx, ok := ctx.Value(txContextKey).(*sql.Tx)
-	if !ok {
-		panic("missing tx value in request context")
-	}
+	tx, _ := ctx.Value(txContextKey).(*sql.Tx)
 	return tx
 }
