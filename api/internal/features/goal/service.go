@@ -19,6 +19,34 @@ type Service struct {
 	keyBuilder cache.KeyBuilder
 }
 
+type goalService interface {
+	FindAll(
+		ctx context.Context,
+		name string,
+		f filters.Filters,
+	) ([]*Goal, filters.Metadata, error)
+
+	FindById(
+		ctx context.Context,
+		id uuid.UUID,
+	) (*Goal, error)
+
+	Insert(
+		ctx context.Context,
+		model *Goal,
+	) error
+
+	Update(
+		ctx context.Context,
+		model *Goal,
+	) error
+
+	DeleteById(
+		ctx context.Context,
+		id uuid.UUID,
+	) error
+}
+
 func NewService(
 	repo goalRepository,
 	tx transaction.Manager,
